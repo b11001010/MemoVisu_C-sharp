@@ -44,6 +44,7 @@
             this.offset_textBox = new System.Windows.Forms.TextBox();
             this.offset_label = new System.Windows.Forms.Label();
             this.writeSize_label = new System.Windows.Forms.Label();
+            this.readSize_label = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -203,17 +204,27 @@
             // writeSize_label
             // 
             this.writeSize_label.AutoSize = true;
-            this.writeSize_label.Location = new System.Drawing.Point(569, 115);
+            this.writeSize_label.Location = new System.Drawing.Point(573, 94);
             this.writeSize_label.Name = "writeSize_label";
             this.writeSize_label.Size = new System.Drawing.Size(80, 12);
             this.writeSize_label.TabIndex = 16;
             this.writeSize_label.Text = "書き込みサイズ:";
+            // 
+            // readSize_label
+            // 
+            this.readSize_label.AutoSize = true;
+            this.readSize_label.Location = new System.Drawing.Point(573, 115);
+            this.readSize_label.Name = "readSize_label";
+            this.readSize_label.Size = new System.Drawing.Size(82, 12);
+            this.readSize_label.TabIndex = 17;
+            this.readSize_label.Text = "読み込みサイズ:";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(899, 703);
+            this.Controls.Add(this.readSize_label);
             this.Controls.Add(this.writeSize_label);
             this.Controls.Add(this.offset_label);
             this.Controls.Add(this.offset_textBox);
@@ -259,6 +270,7 @@
         private System.Windows.Forms.TextBox offset_textBox;
         private System.Windows.Forms.Label offset_label;
         private System.Windows.Forms.Label writeSize_label;
+        private System.Windows.Forms.Label readSize_label;
     }
 }
 

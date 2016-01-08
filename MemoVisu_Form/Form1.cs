@@ -17,6 +17,7 @@ namespace MemoVisu_Form
     {
 
         int edi;
+        int esi;
         ArrayList eips = new ArrayList();
         ArrayList writeAddrs = new ArrayList();
         ArrayList readAddrs = new ArrayList();
@@ -46,6 +47,7 @@ namespace MemoVisu_Form
         private void button_paint_Click(object sender, EventArgs e)
         {
             writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
+            readSize_label.Text = "読み込みサイズ: " + readAddrs.Count;
             int width = int.Parse(width_textBox.Text);
             int height = int.Parse(height_textBox.Text);
 
@@ -54,6 +56,7 @@ namespace MemoVisu_Form
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g = Graphics.FromImage(mainImg);
 
+            //EIP描画
             int x, y;
             foreach (int eip in eips) {
                 int pos = eip - offset;	//オフセット分を引く
@@ -65,7 +68,7 @@ namespace MemoVisu_Form
                 Brush b = new SolidBrush(Color.FromArgb(0x10, Color.Red));
                 g.FillRectangle(b, x, y, width, height);
             }
-
+            //書き込みアドレス描画
             foreach (int addr in writeAddrs)
             {
                 int pos = addr - offset;
@@ -75,6 +78,18 @@ namespace MemoVisu_Form
                 y = y * margin_y + (y - 1) * height;
                 //塗りつぶされた長方形を描画する
                 Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
+                g.FillRectangle(b, x, y, width, height);
+            }
+            //読み込みアドレス描画
+            foreach (int addr in readAddrs)
+            {
+                int pos = addr - offset;
+                x = pos % row;
+                y = pos / row;
+                x = x * margin_x + (x - 1) * width + 10;
+                y = y * margin_y + (y - 1) * height;
+                //塗りつぶされた長方形を描画する
+                Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
                 g.FillRectangle(b, x, y, width, height);
             }
 
@@ -88,7 +103,6 @@ namespace MemoVisu_Form
             Bitmap scaleDownImg = new Bitmap(picture_map.Width, picture_map.Height);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g2 = Graphics.FromImage(scaleDownImg);
-            
             //画像のサイズを縮小して描画する
             g2.DrawImage(mainImg, 0, 0, picture_map.Width, picture_map.Height);
             //Graphicsオブジェクトのリソースを解放する
@@ -136,25 +150,41 @@ namespace MemoVisu_Form
                             eips.Add(Convert.ToInt32(eipString, 16));
 
                             //レジスタの値を更新
-                            string regString = line.Substring(line.Length - 12, 12);
-                            if ("EDI" == regString.Substring(0,3))
+                            string regString = line.Substring(line.Length - 12, 3);
+                            if ("EDI" == regString)
                             {
-                                edi = Convert.ToInt32(regString.Substring(regString.Length - 8, 8), 16);
+                                edi = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
+                            }
+                            else if("ESI" == regString)
+                            {
+                                esi = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
                             }
                         }
                         catch {/* nothing */}
 
                         //正規表現でメモリアクセス命令を判別
-                        Regex r = new Regex(@"MOV (BYTE|WORD|DWORD) PTR DS:\[(..|...)\].*");
-                            Match match = r.Match(line);
-                            if (match.Success)
+                        Regex writeRegex = new Regex(@"MOV (BYTE|WORD|DWORD) PTR DS:\[(..|...)\].*");   //書き込み
+                        Match writeMatch = writeRegex.Match(line);
+                        if (writeMatch.Success)
+                        {
+                            if (writeMatch.Groups[2].Value == "EDI")
                             {
-                                if(match.Groups[2].Value == "EDI")
+                                writeAddrs.Add(edi);
+                            }
+                        }
+                        else
+                        {
+                            Regex readRegex = new Regex(@"MOV ...?,(BYTE|WORD|DWORD) PTR DS:\[(..|...)\]"); //読み込み
+                            Match readMatch = readRegex.Match(line);
+                            if (readMatch.Success)
+                            {
+                                if (readMatch.Groups[2].Value == "ESI")
                                 {
-                                    writeAddrs.Add(edi);
-                                    layer_listBox.Items.Add(edi.ToString("X"));
+                                    readAddrs.Add(esi);
+                                    layer_listBox.Items.Add(esi.ToString("X"));
+                                }
                             }
-                            }
+                        }
                     }
                     //閉じる
                     sr.Close();
