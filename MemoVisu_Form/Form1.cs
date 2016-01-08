@@ -16,24 +16,28 @@ namespace MemoVisu_Form
     {
 
         int edi;
-
         ArrayList eips = new ArrayList();
-        int margin_x = 0;
-        int margin_y = 0;
-        int height = 3;
-        int width = 3;
+
+        int margin_x = 0;   //ブロック同士の横の間隔
+        int margin_y = 0;   //ブロック同士の縦の間隔
+        int width = 3;      //ブロックの幅
+        int height = 3;     //ブロックの高さ
+        int row = 0x100;    //1行あたりのブロック数
 
         public Form1()
         {
             InitializeComponent();
         }
 
+        //フォーム生成時
         private void Form1_Load(object sender, EventArgs e)
         {
             width_textBox.Text = width.ToString();
             height_textBox.Text = height.ToString();
+            row_numericUpDown.Value = row;
         }
 
+        //「描画」ボタンクリック時
         private void button_paint_Click(object sender, EventArgs e)
         {
 
@@ -42,17 +46,16 @@ namespace MemoVisu_Form
             int height = int.Parse(width_textBox.Text);
             int width = int.Parse(height_textBox.Text);
 
-            //200x100サイズのImageオブジェクトを作成する
-            Bitmap img = new Bitmap(266*width, 1000);
-
+            //メインのImageオブジェクトを作成する
+            Bitmap mainImg = new Bitmap(row * width + 10, 1000);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
-            Graphics g = Graphics.FromImage(img);
+            Graphics g = Graphics.FromImage(mainImg);
 
             int x, y;
             foreach (int eip in eips) {
                 int pos = eip - 0x3C0000;	//オフセット
-                x = pos % 0x100;
-                y = pos / 0x100;
+                x = pos % row;
+                y = pos / row;
                 x = x * margin_x + (x - 1) * width + 10;
                 y = y * margin_y + (y - 1) * height;
                 //塗りつぶされた長方形を描画する
@@ -62,26 +65,21 @@ namespace MemoVisu_Form
 
             //リソースを解放する
             g.Dispose();
-
-            mainPictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
-
             //作成した画像を表示する
-            mainPictureBox.Image = img;
+            mainPictureBox.Image = mainImg;
 
 
-            //描画先とするImageオブジェクトを作成する
-            Bitmap canvas = new Bitmap(picture_map.Width, picture_map.Height);
+            //縮小版のImageオブジェクトを作成する
+            Bitmap scaleDownImg = new Bitmap(picture_map.Width, picture_map.Height);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
-            Graphics g2 = Graphics.FromImage(canvas);
+            Graphics g2 = Graphics.FromImage(scaleDownImg);
             
-            //画像のサイズを2倍にしてcanvasに描画する
-            g2.DrawImage(img, 0, 0, picture_map.Width, picture_map.Height);
-            //Imageオブジェクトのリソースを解放する
-
+            //画像のサイズを縮小して描画する
+            g2.DrawImage(mainImg, 0, 0, picture_map.Width, picture_map.Height);
             //Graphicsオブジェクトのリソースを解放する
             g2.Dispose();
             //PictureBox1に表示する
-            picture_map.Image = canvas;
+            picture_map.Image = scaleDownImg;
         }
 
         //「ファイルを開く」ボタンをクリック
@@ -95,11 +93,8 @@ namespace MemoVisu_Form
             //はじめに表示されるフォルダを指定する
             ofd.InitialDirectory = @"";
             //[ファイルの種類]に表示される選択肢を指定する
-            //指定しないとすべてのファイルが表示される
-            ofd.Filter =
-                "テキストファイル(*.txt)|*.txt|すべてのファイル(*.*)|*.*";
-            //[ファイルの種類]ではじめに
-            //「すべてのファイル」が選択されているようにする
+            ofd.Filter = "テキストファイル(*.txt)|*.txt|すべてのファイル(*.*)|*.*";
+            //[ファイルの種類]ではじめに「テキストファイル」が選択されているようにする
             ofd.FilterIndex = 1;
             //タイトルを設定する
             ofd.Title = "開くファイルを選択してください";
@@ -109,13 +104,12 @@ namespace MemoVisu_Form
             //ダイアログを表示する
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                //OKボタンがクリックされたとき
-                //選択されたファイルを読み取り専用で開く
+                //OKボタンがクリックされたとき選択されたファイルを読み取り専用で開く
                 Stream stream;
                 stream = ofd.OpenFile();
                 if (stream != null)
                 {
-                    //内容を読み込み、表示する
+                    //内容を読み込み
                     string line = "";
                     StreamReader sr = new StreamReader(stream);
                     while ((line = sr.ReadLine()) != null)
@@ -140,6 +134,12 @@ namespace MemoVisu_Form
                     stream.Close();
                 }
             }
+        }
+
+        //「折り返し幅」NumericUpDownの値の変更時
+        private void row_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            row = Decimal.ToInt32(row_numericUpDown.Value);
         }
     }
 }
