@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace MemoVisu_Form
 {
@@ -17,12 +18,15 @@ namespace MemoVisu_Form
 
         int edi;
         ArrayList eips = new ArrayList();
+        ArrayList writeAddrs = new ArrayList();
+        ArrayList readAddrs = new ArrayList();
 
-        int margin_x = 0;   //ブロック同士の横の間隔
-        int margin_y = 0;   //ブロック同士の縦の間隔
-        int width = 3;      //ブロックの幅
-        int height = 3;     //ブロックの高さ
-        int row = 0x100;    //1行あたりのブロック数
+        int margin_x = 0;       //ブロック同士の横の間隔
+        int margin_y = 0;       //ブロック同士の縦の間隔
+        int width = 3;          //ブロックの幅
+        int height = 3;         //ブロックの高さ
+        int row = 0x100;        //1行あたりのブロック数
+        int offset = 0x3A0000;  //開始オフセット
 
         public Form1()
         {
@@ -35,31 +39,42 @@ namespace MemoVisu_Form
             width_textBox.Text = width.ToString();
             height_textBox.Text = height.ToString();
             row_numericUpDown.Value = row;
+            offset_textBox.Text = offset.ToString("X");
         }
 
         //「描画」ボタンクリック時
         private void button_paint_Click(object sender, EventArgs e)
         {
-
-            margin_textBox.Text = edi.ToString();
-
-            int height = int.Parse(width_textBox.Text);
-            int width = int.Parse(height_textBox.Text);
+            writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
+            int width = int.Parse(width_textBox.Text);
+            int height = int.Parse(height_textBox.Text);
 
             //メインのImageオブジェクトを作成する
-            Bitmap mainImg = new Bitmap(row * width + 10, 1000);
+            Bitmap mainImg = new Bitmap(row * width + 10, 10000);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g = Graphics.FromImage(mainImg);
 
             int x, y;
             foreach (int eip in eips) {
-                int pos = eip - 0x3C0000;	//オフセット
+                int pos = eip - offset;	//オフセット分を引く
                 x = pos % row;
                 y = pos / row;
                 x = x * margin_x + (x - 1) * width + 10;
                 y = y * margin_y + (y - 1) * height;
                 //塗りつぶされた長方形を描画する
-                Brush b = new SolidBrush(Color.FromArgb(10, Color.Red));
+                Brush b = new SolidBrush(Color.FromArgb(0x10, Color.Red));
+                g.FillRectangle(b, x, y, width, height);
+            }
+
+            foreach (int addr in writeAddrs)
+            {
+                int pos = addr - offset;
+                x = pos % row;
+                y = pos / row;
+                x = x * margin_x + (x - 1) * width + 10;
+                y = y * margin_y + (y - 1) * height;
+                //塗りつぶされた長方形を描画する
+                Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
                 g.FillRectangle(b, x, y, width, height);
             }
 
@@ -128,6 +143,18 @@ namespace MemoVisu_Form
                             }
                         }
                         catch {/* nothing */}
+
+                        //正規表現でメモリアクセス命令を判別
+                        Regex r = new Regex(@"MOV (BYTE|WORD|DWORD) PTR DS:\[(..|...)\].*");
+                            Match match = r.Match(line);
+                            if (match.Success)
+                            {
+                                if(match.Groups[2].Value == "EDI")
+                                {
+                                    writeAddrs.Add(edi);
+                                    layer_listBox.Items.Add(edi.ToString("X"));
+                            }
+                            }
                     }
                     //閉じる
                     sr.Close();
@@ -140,6 +167,12 @@ namespace MemoVisu_Form
         private void row_numericUpDown_ValueChanged(object sender, EventArgs e)
         {
             row = Decimal.ToInt32(row_numericUpDown.Value);
+        }
+
+        //「offset」テキストボックスの値変更時
+        private void offset_textBox_TextChanged(object sender, EventArgs e)
+        {
+            offset = Convert.ToInt32(offset_textBox.Text, 16);
         }
     }
 }
