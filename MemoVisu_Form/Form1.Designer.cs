@@ -46,6 +46,9 @@
             this.writeSize_label = new System.Windows.Forms.Label();
             this.readSize_label = new System.Windows.Forms.Label();
             this.filter_checkedListBox = new System.Windows.Forms.CheckedListBox();
+            this.readLayer_listBox = new System.Windows.Forms.ListBox();
+            this.writeLayer_label = new System.Windows.Forms.Label();
+            this.readLayer_label = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -88,9 +91,9 @@
             // 
             this.layer_listBox.FormattingEnabled = true;
             this.layer_listBox.ItemHeight = 12;
-            this.layer_listBox.Location = new System.Drawing.Point(712, 12);
+            this.layer_listBox.Location = new System.Drawing.Point(691, 31);
             this.layer_listBox.Name = "layer_listBox";
-            this.layer_listBox.Size = new System.Drawing.Size(95, 124);
+            this.layer_listBox.Size = new System.Drawing.Size(95, 100);
             this.layer_listBox.TabIndex = 5;
             // 
             // button_paint
@@ -130,7 +133,7 @@
             this.picture_map.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.picture_map.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.picture_map.Location = new System.Drawing.Point(823, 148);
+            this.picture_map.Location = new System.Drawing.Point(835, 148);
             this.picture_map.Name = "picture_map";
             this.picture_map.Size = new System.Drawing.Size(52, 540);
             this.picture_map.TabIndex = 8;
@@ -205,7 +208,7 @@
             // writeSize_label
             // 
             this.writeSize_label.AutoSize = true;
-            this.writeSize_label.Location = new System.Drawing.Point(573, 94);
+            this.writeSize_label.Location = new System.Drawing.Point(547, 94);
             this.writeSize_label.Name = "writeSize_label";
             this.writeSize_label.Size = new System.Drawing.Size(80, 12);
             this.writeSize_label.TabIndex = 16;
@@ -214,7 +217,7 @@
             // readSize_label
             // 
             this.readSize_label.AutoSize = true;
-            this.readSize_label.Location = new System.Drawing.Point(573, 115);
+            this.readSize_label.Location = new System.Drawing.Point(547, 115);
             this.readSize_label.Name = "readSize_label";
             this.readSize_label.Size = new System.Drawing.Size(82, 12);
             this.readSize_label.TabIndex = 17;
@@ -233,11 +236,41 @@
             this.filter_checkedListBox.Size = new System.Drawing.Size(97, 46);
             this.filter_checkedListBox.TabIndex = 18;
             // 
+            // readLayer_listBox
+            // 
+            this.readLayer_listBox.FormattingEnabled = true;
+            this.readLayer_listBox.ItemHeight = 12;
+            this.readLayer_listBox.Location = new System.Drawing.Point(792, 31);
+            this.readLayer_listBox.Name = "readLayer_listBox";
+            this.readLayer_listBox.Size = new System.Drawing.Size(95, 100);
+            this.readLayer_listBox.TabIndex = 19;
+            // 
+            // writeLayer_label
+            // 
+            this.writeLayer_label.AutoSize = true;
+            this.writeLayer_label.Location = new System.Drawing.Point(689, 16);
+            this.writeLayer_label.Name = "writeLayer_label";
+            this.writeLayer_label.Size = new System.Drawing.Size(73, 12);
+            this.writeLayer_label.TabIndex = 20;
+            this.writeLayer_label.Text = "書き込み階層";
+            // 
+            // readLayer_label
+            // 
+            this.readLayer_label.AutoSize = true;
+            this.readLayer_label.Location = new System.Drawing.Point(790, 16);
+            this.readLayer_label.Name = "readLayer_label";
+            this.readLayer_label.Size = new System.Drawing.Size(75, 12);
+            this.readLayer_label.TabIndex = 21;
+            this.readLayer_label.Text = "読み込み階層";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(899, 703);
+            this.Controls.Add(this.readLayer_label);
+            this.Controls.Add(this.writeLayer_label);
+            this.Controls.Add(this.readLayer_listBox);
             this.Controls.Add(this.filter_checkedListBox);
             this.Controls.Add(this.readSize_label);
             this.Controls.Add(this.writeSize_label);
@@ -287,6 +320,9 @@
         private System.Windows.Forms.Label writeSize_label;
         private System.Windows.Forms.Label readSize_label;
         private System.Windows.Forms.CheckedListBox filter_checkedListBox;
+        private System.Windows.Forms.ListBox readLayer_listBox;
+        private System.Windows.Forms.Label writeLayer_label;
+        private System.Windows.Forms.Label readLayer_label;
     }
 }
 

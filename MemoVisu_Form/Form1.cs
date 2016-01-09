@@ -23,8 +23,10 @@ namespace MemoVisu_Form
         ArrayList writeAddrs = new ArrayList();
         ArrayList readAddrs = new ArrayList();
 
+        //階層管理
         Dictionary<int, int> layerMap = new Dictionary<int, int>();
         List<List<int>> writeList = new List<List<int>>();
+        List<List<int>> readList = new List<List<int>>();
 
         int margin_x = 0;       //ブロック同士の横の間隔
         int margin_y = 0;       //ブロック同士の縦の間隔
@@ -54,7 +56,8 @@ namespace MemoVisu_Form
         private void button_paint_Click(object sender, EventArgs e)
         {
 
-            int layer = layer_listBox.SelectedIndex;
+            int writeLayer = layer_listBox.SelectedIndex;
+            int readLayer = readLayer_listBox.SelectedIndex;
 
             writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
             readSize_label.Text = "読み込みサイズ: " + readAddrs.Count;
@@ -70,21 +73,8 @@ namespace MemoVisu_Form
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0))
             {
-                /*
-                foreach (int addr in writeAddrs)
-                {
-                    int pos = addr - offset;
-                    x = pos % row;
-                    y = pos / row;
-                    x = x * margin_x + (x - 1) * width + 10;
-                    y = y * margin_y + (y - 1) * height;
-                    //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
-                    g.FillRectangle(b, x, y, width, height);
-                }
-                */
-                
-                foreach (int addr in writeList[layer])
+                //foreach (int addr in writeAddrs)      //階層化処理無し
+                foreach (int addr in writeList[writeLayer])
                 {
                     int pos = addr - offset;
                     x = pos % row;
@@ -100,7 +90,8 @@ namespace MemoVisu_Form
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1))
             {
-                foreach (int addr in readAddrs)
+                //foreach (int addr in readAddrs)      //階層化処理無し
+                foreach (int addr in readList[readLayer])
                 {
                     int pos = addr - offset;
                     x = pos % row;
@@ -287,19 +278,66 @@ namespace MemoVisu_Form
                             Match readMatch = readRegex.Match(line);
                             if (readMatch.Success)
                             {
+                                //書き込みサイズ取得
+                                if (writeMatch.Groups[1].Value == "BYTE")
+                                {
+                                    size = 1;
+                                }
+                                else if (writeMatch.Groups[1].Value == "WORD")
+                                {
+                                    size = 2;
+                                }
+                                else if (writeMatch.Groups[1].Value == "DWORD")
+                                {
+                                    size = 4;
+                                }
+
+                                //読み込み先アドレスを追加
+                                int srcAddr;
                                 if (readMatch.Groups[2].Value == "ESI")
                                 {
-                                    readAddrs.Add(esi);
-                                    //layer_listBox.Items.Add(esi.ToString("X"));
+                                    srcAddr = esi;
                                 }
                                 else if (readMatch.Groups[2].Value == "EDX")
                                 {
-                                    readAddrs.Add(edx);
+                                    srcAddr = edx;
                                 }
                                 else if (readMatch.Groups[2].Value == "EBX")
                                 {
-                                    readAddrs.Add(ebx);
+                                    srcAddr = ebx;
                                 }
+                                else
+                                {
+                                    continue;
+                                }
+                                readAddrs.Add(srcAddr);
+
+                                //階層化処理
+                                int i = 0;
+                                do
+                                {
+                                    //読み込み先アドレスで階層マップを検索
+                                    if (layerMap.ContainsKey(srcAddr + i))
+                                    {
+                                        //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
+                                        int layerLevel = layerMap[srcAddr + i];
+                                        while (readList.Count <= layerLevel)
+                                        {
+                                            readList.Add(new List<int>());
+                                        }
+                                        readList[layerLevel].Add(srcAddr + i);
+                                    }
+                                    else
+                                    {
+                                        //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
+                                        if (readList.Count == 0)
+                                        {
+                                            readList.Add(new List<int>());
+                                        }
+                                        readList[0].Add(srcAddr + i);
+                                    }
+                                    i++;
+                                } while (i < size);
                             }
                         }
                     }
@@ -314,6 +352,13 @@ namespace MemoVisu_Form
                         layer_listBox.Items.Add(i);
                     }
                     layer_listBox.SetSelected(0, true);
+
+                    readLayer_listBox.Items.Clear();
+                    for (int i = 0; i < readList.Count; i++)
+                    {
+                        readLayer_listBox.Items.Add(i);
+                    }
+                    readLayer_listBox.SetSelected(0, true);
                 }
             }
         }
