@@ -23,6 +23,9 @@ namespace MemoVisu_Form
         ArrayList writeAddrs = new ArrayList();
         ArrayList readAddrs = new ArrayList();
 
+        Dictionary<int, int> layerMap = new Dictionary<int, int>();
+        List<List<int>> writeList = new List<List<int>>();
+
         int margin_x = 0;       //ブロック同士の横の間隔
         int margin_y = 0;       //ブロック同士の縦の間隔
         int width = 3;          //ブロックの幅
@@ -50,6 +53,9 @@ namespace MemoVisu_Form
         //「描画」ボタンクリック時
         private void button_paint_Click(object sender, EventArgs e)
         {
+
+            int layer = layer_listBox.SelectedIndex;
+
             writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
             readSize_label.Text = "読み込みサイズ: " + readAddrs.Count;
             int width = int.Parse(width_textBox.Text);
@@ -64,6 +70,7 @@ namespace MemoVisu_Form
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0))
             {
+                /*
                 foreach (int addr in writeAddrs)
                 {
                     int pos = addr - offset;
@@ -75,6 +82,20 @@ namespace MemoVisu_Form
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
                     g.FillRectangle(b, x, y, width, height);
                 }
+                */
+                
+                foreach (int addr in writeList[layer])
+                {
+                    int pos = addr - offset;
+                    x = pos % row;
+                    y = pos / row;
+                    x = x * margin_x + (x - 1) * width + 10;
+                    y = y * margin_y + (y - 1) * height;
+                    //塗りつぶされた長方形を描画する
+                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
+                    g.FillRectangle(b, x, y, width, height);
+                }
+                
             }
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1))
@@ -157,12 +178,18 @@ namespace MemoVisu_Form
                     StreamReader sr = new StreamReader(stream);
                     while ((line = sr.ReadLine()) != null)
                     {
+                        int eip;
                         try
                         {
                             //EIPをリストに格納
-                            string eipString = line.Substring(0, 8);
-                            eips.Add(Convert.ToInt32(eipString, 16));
-
+                            eip = Convert.ToInt32(line.Substring(0, 8), 16);
+                            eips.Add(eip);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                        try {
                             //レジスタの値を更新
                             string regString = line.Substring(line.Length - 12, 3);
                             if ("EDI" == regString)
@@ -183,20 +210,76 @@ namespace MemoVisu_Form
                             }
                         }
                         catch {/* nothing */}
-
+                        
                         //正規表現でメモリアクセス命令を判別
                         Regex writeRegex = new Regex(@"MOV (BYTE|WORD|DWORD) PTR DS:\[(..|...)\].*");   //書き込み
                         Match writeMatch = writeRegex.Match(line);
+                        int size = 0;
                         if (writeMatch.Success)
                         {
+                            //書き込みサイズ取得
+                            if(writeMatch.Groups[1].Value == "BYTE")
+                            {
+                                size = 1;
+                            }
+                            else if (writeMatch.Groups[1].Value == "WORD")
+                            {
+                                size = 2;
+                            }
+                            else if (writeMatch.Groups[1].Value == "DWORD")
+                            {
+                                size = 4;
+                            }
+
+                            //書き込み先アドレスを追加
+                            int dstAddr;
                             if (writeMatch.Groups[2].Value == "EDI")
                             {
-                                writeAddrs.Add(edi);
+                                dstAddr = edi;
                             }
                             else if (writeMatch.Groups[2].Value == "EBX")
                             {
-                                writeAddrs.Add(ebx);
+                                dstAddr = ebx;
                             }
+                            else
+                            {
+                                continue;
+                            }
+                            writeAddrs.Add(dstAddr);
+
+                            //階層化処理
+                            //EIPで階層マップを検索
+                            if (layerMap.ContainsKey(eip))
+                            {
+                                //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
+                                int newLayerLevel = layerMap[eip] + 1;
+                                while(writeList.Count <= newLayerLevel)
+                                {
+                                    writeList.Add(new List<int>());
+                                }
+                                int i = 0;
+                                do
+                                {
+                                    layerMap[dstAddr + i] = newLayerLevel;
+                                    writeList[newLayerLevel].Add(dstAddr + i);
+                                } while (i < size);
+                            }
+                            else
+                            {
+                                //存在しない場合，書き込み先アドレスの階層レベルを1に設定
+                                while (writeList.Count <= 1)
+                                {
+                                    writeList.Add(new List<int>());
+                                }
+                                int i = 0;
+                                do
+                                {
+                                    layerMap[dstAddr + i] = 1;
+                                    writeList[1].Add(dstAddr + i);
+                                    i++;
+                                } while (i < size);
+                            }
+
                         }
                         else
                         {
@@ -223,6 +306,14 @@ namespace MemoVisu_Form
                     //閉じる
                     sr.Close();
                     stream.Close();
+
+                    //階層リストボックスを更新
+                    layer_listBox.Items.Clear();
+                    for (int i = 0; i < writeList.Count; i++)
+                    {
+                        layer_listBox.Items.Add(i);
+                    }
+                    layer_listBox.SetSelected(0, true);
                 }
             }
         }
