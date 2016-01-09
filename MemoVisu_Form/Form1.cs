@@ -15,7 +15,8 @@ namespace MemoVisu_Form
 {
     public partial class Form1 : Form
     {
-
+        int ebx;
+        int edx;
         int edi;
         int esi;
         ArrayList eips = new ArrayList();
@@ -41,6 +42,9 @@ namespace MemoVisu_Form
             height_textBox.Text = height.ToString();
             row_numericUpDown.Value = row;
             offset_textBox.Text = offset.ToString("X");
+            filter_checkedListBox.SetItemChecked(0, true);
+            filter_checkedListBox.SetItemChecked(1, true);
+            filter_checkedListBox.SetItemChecked(2, true);
         }
 
         //「描画」ボタンクリック時
@@ -56,41 +60,51 @@ namespace MemoVisu_Form
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g = Graphics.FromImage(mainImg);
 
-            //EIP描画
             int x, y;
-            foreach (int eip in eips) {
-                int pos = eip - offset;	//オフセット分を引く
-                x = pos % row;
-                y = pos / row;
-                x = x * margin_x + (x - 1) * width + 10;
-                y = y * margin_y + (y - 1) * height;
-                //塗りつぶされた長方形を描画する
-                Brush b = new SolidBrush(Color.FromArgb(0x10, Color.Red));
-                g.FillRectangle(b, x, y, width, height);
-            }
             //書き込みアドレス描画
-            foreach (int addr in writeAddrs)
+            if (filter_checkedListBox.GetItemChecked(0))
             {
-                int pos = addr - offset;
-                x = pos % row;
-                y = pos / row;
-                x = x * margin_x + (x - 1) * width + 10;
-                y = y * margin_y + (y - 1) * height;
-                //塗りつぶされた長方形を描画する
-                Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
-                g.FillRectangle(b, x, y, width, height);
+                foreach (int addr in writeAddrs)
+                {
+                    int pos = addr - offset;
+                    x = pos % row;
+                    y = pos / row;
+                    x = x * margin_x + (x - 1) * width + 10;
+                    y = y * margin_y + (y - 1) * height;
+                    //塗りつぶされた長方形を描画する
+                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
+                    g.FillRectangle(b, x, y, width, height);
+                }
             }
             //読み込みアドレス描画
-            foreach (int addr in readAddrs)
+            if (filter_checkedListBox.GetItemChecked(1))
             {
-                int pos = addr - offset;
-                x = pos % row;
-                y = pos / row;
-                x = x * margin_x + (x - 1) * width + 10;
-                y = y * margin_y + (y - 1) * height;
-                //塗りつぶされた長方形を描画する
-                Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
-                g.FillRectangle(b, x, y, width, height);
+                foreach (int addr in readAddrs)
+                {
+                    int pos = addr - offset;
+                    x = pos % row;
+                    y = pos / row;
+                    x = x * margin_x + (x - 1) * width + 10;
+                    y = y * margin_y + (y - 1) * height;
+                    //塗りつぶされた長方形を描画する
+                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
+                    g.FillRectangle(b, x, y, width, height);
+                }
+            }
+            //実行描画
+            if (filter_checkedListBox.GetItemChecked(2))
+            {
+                foreach (int eip in eips)
+                {
+                    int pos = eip - offset; //オフセット分を引く
+                    x = pos % row;
+                    y = pos / row;
+                    x = x * margin_x + (x - 1) * width + 10;
+                    y = y * margin_y + (y - 1) * height;
+                    //塗りつぶされた長方形を描画する
+                    Brush b = new SolidBrush(Color.FromArgb(0x10, Color.Red));
+                    g.FillRectangle(b, x, y, width, height);
+                }
             }
 
             //リソースを解放する
@@ -159,6 +173,14 @@ namespace MemoVisu_Form
                             {
                                 esi = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
                             }
+                            else if ("EDX" == regString)
+                            {
+                                edx = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
+                            }
+                            else if ("EBX" == regString)
+                            {
+                                ebx = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
+                            }
                         }
                         catch {/* nothing */}
 
@@ -171,6 +193,10 @@ namespace MemoVisu_Form
                             {
                                 writeAddrs.Add(edi);
                             }
+                            else if (writeMatch.Groups[2].Value == "EBX")
+                            {
+                                writeAddrs.Add(ebx);
+                            }
                         }
                         else
                         {
@@ -181,7 +207,15 @@ namespace MemoVisu_Form
                                 if (readMatch.Groups[2].Value == "ESI")
                                 {
                                     readAddrs.Add(esi);
-                                    layer_listBox.Items.Add(esi.ToString("X"));
+                                    //layer_listBox.Items.Add(esi.ToString("X"));
+                                }
+                                else if (readMatch.Groups[2].Value == "EDX")
+                                {
+                                    readAddrs.Add(edx);
+                                }
+                                else if (readMatch.Groups[2].Value == "EBX")
+                                {
+                                    readAddrs.Add(ebx);
                                 }
                             }
                         }

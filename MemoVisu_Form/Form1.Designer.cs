@@ -45,6 +45,7 @@
             this.offset_label = new System.Windows.Forms.Label();
             this.writeSize_label = new System.Windows.Forms.Label();
             this.readSize_label = new System.Windows.Forms.Label();
+            this.filter_checkedListBox = new System.Windows.Forms.CheckedListBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -219,11 +220,25 @@
             this.readSize_label.TabIndex = 17;
             this.readSize_label.Text = "読み込みサイズ:";
             // 
+            // filter_checkedListBox
+            // 
+            this.filter_checkedListBox.CheckOnClick = true;
+            this.filter_checkedListBox.FormattingEnabled = true;
+            this.filter_checkedListBox.Items.AddRange(new object[] {
+            "書き込み",
+            "読み込み",
+            "実行"});
+            this.filter_checkedListBox.Location = new System.Drawing.Point(363, 12);
+            this.filter_checkedListBox.Name = "filter_checkedListBox";
+            this.filter_checkedListBox.Size = new System.Drawing.Size(97, 46);
+            this.filter_checkedListBox.TabIndex = 18;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(899, 703);
+            this.Controls.Add(this.filter_checkedListBox);
             this.Controls.Add(this.readSize_label);
             this.Controls.Add(this.writeSize_label);
             this.Controls.Add(this.offset_label);
@@ -271,6 +286,7 @@
         private System.Windows.Forms.Label offset_label;
         private System.Windows.Forms.Label writeSize_label;
         private System.Windows.Forms.Label readSize_label;
+        private System.Windows.Forms.CheckedListBox filter_checkedListBox;
     }
 }
 
