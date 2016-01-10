@@ -115,7 +115,7 @@
             this.panel1.Controls.Add(this.mainPictureBox);
             this.panel1.Location = new System.Drawing.Point(12, 148);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(795, 543);
+            this.panel1.Size = new System.Drawing.Size(827, 543);
             this.panel1.TabIndex = 7;
             // 
             // mainPictureBox
@@ -123,7 +123,7 @@
             this.mainPictureBox.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.mainPictureBox.Location = new System.Drawing.Point(0, 0);
             this.mainPictureBox.Name = "mainPictureBox";
-            this.mainPictureBox.Size = new System.Drawing.Size(795, 540);
+            this.mainPictureBox.Size = new System.Drawing.Size(824, 540);
             this.mainPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.mainPictureBox.TabIndex = 0;
             this.mainPictureBox.TabStop = false;
@@ -133,7 +133,7 @@
             this.picture_map.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.picture_map.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.picture_map.Location = new System.Drawing.Point(835, 148);
+            this.picture_map.Location = new System.Drawing.Point(867, 148);
             this.picture_map.Name = "picture_map";
             this.picture_map.Size = new System.Drawing.Size(52, 540);
             this.picture_map.TabIndex = 8;
@@ -267,7 +267,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(899, 703);
+            this.ClientSize = new System.Drawing.Size(931, 703);
             this.Controls.Add(this.readLayer_label);
             this.Controls.Add(this.writeLayer_label);
             this.Controls.Add(this.readLayer_listBox);

@@ -65,11 +65,51 @@ namespace MemoVisu_Form
             int height = int.Parse(height_textBox.Text);
 
             //メインのImageオブジェクトを作成する
-            Bitmap mainImg = new Bitmap(row * width + 10, 10000);
+            Bitmap mainImg = new Bitmap(row * width + 20, 10000);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g = Graphics.FromImage(mainImg);
 
             int x, y;
+            //グリッド描画
+            for (int i = 0; i < 1000; i++)
+            {
+                int addr = 0x10000 * i;
+                int pos = addr - offset;
+                y = pos / row;
+                y = y * (margin_y + height);
+                Pen p;
+                Font fnt;
+                if(addr % 0x100000 == 0)
+                {
+                    p = new Pen(Color.FromArgb(0x7F, Color.Blue), 3);
+                    fnt = new Font("MS UI Gothic", 15);
+                }
+                else
+                {
+                    p = new Pen(Color.FromArgb(0x3F, Color.Blue), 2);
+                    fnt = new Font("MS UI Gothic", 10);
+                }
+                g.DrawLine(p, 0, y, row * width + 20, y);
+                g.DrawString(addr.ToString("X"), fnt, Brushes.Black, 0, y);
+                p.Dispose();
+            }
+            /*
+            for (int i = 0; i < 100; i++)
+            {
+                int addr = 0x100000 * i;
+                int pos = addr - offset;
+                x = pos % row;
+                y = pos / row;
+                x = x * (margin_x + width);
+                y = y * (margin_y + height);
+                g.FillRectangle(new SolidBrush(Color.FromArgb(0x7F, Color.Blue)), x, y, row * width + 20, 3);
+                //フォントオブジェクトの作成
+                Font fnt = new Font("MS UI Gothic", 20);
+                //文字列を位置(0,0)、青色で表示
+                g.DrawString(addr.ToString("X"), fnt, Brushes.Black, x, y);
+            }
+            */
+
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0))
             {
@@ -79,8 +119,8 @@ namespace MemoVisu_Form
                     int pos = addr - offset;
                     x = pos % row;
                     y = pos / row;
-                    x = x * margin_x + (x - 1) * width + 10;
-                    y = y * margin_y + (y - 1) * height;
+                    x = x * (margin_x + width) + 10;
+                    y = y * (margin_y +  height);
                     //塗りつぶされた長方形を描画する
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
                     g.FillRectangle(b, x, y, width, height);
@@ -96,8 +136,8 @@ namespace MemoVisu_Form
                     int pos = addr - offset;
                     x = pos % row;
                     y = pos / row;
-                    x = x * margin_x + (x - 1) * width + 10;
-                    y = y * margin_y + (y - 1) * height;
+                    x = x * (margin_x + width) + 10;
+                    y = y * (margin_y + height);
                     //塗りつぶされた長方形を描画する
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
                     g.FillRectangle(b, x, y, width, height);
@@ -111,10 +151,10 @@ namespace MemoVisu_Form
                     int pos = eip - offset; //オフセット分を引く
                     x = pos % row;
                     y = pos / row;
-                    x = x * margin_x + (x - 1) * width + 10;
-                    y = y * margin_y + (y - 1) * height;
+                    x = x * (margin_x + width) + 10;
+                    y = y * (margin_y + height);
                     //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x10, Color.Red));
+                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Red));
                     g.FillRectangle(b, x, y, width, height);
                 }
             }
