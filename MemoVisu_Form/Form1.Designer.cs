@@ -42,13 +42,15 @@
             this.row_numericUpDown = new System.Windows.Forms.NumericUpDown();
             this.row_label = new System.Windows.Forms.Label();
             this.offset_textBox = new System.Windows.Forms.TextBox();
-            this.offset_label = new System.Windows.Forms.Label();
+            this.paintOffset_label = new System.Windows.Forms.Label();
             this.writeSize_label = new System.Windows.Forms.Label();
             this.readSize_label = new System.Windows.Forms.Label();
             this.filter_checkedListBox = new System.Windows.Forms.CheckedListBox();
             this.readLayer_listBox = new System.Windows.Forms.ListBox();
             this.writeLayer_label = new System.Windows.Forms.Label();
             this.readLayer_label = new System.Windows.Forms.Label();
+            this.point_textBox = new System.Windows.Forms.TextBox();
+            this.mouseOffset_label = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -61,6 +63,7 @@
             this.width_textBox.Name = "width_textBox";
             this.width_textBox.Size = new System.Drawing.Size(100, 19);
             this.width_textBox.TabIndex = 1;
+            this.width_textBox.TextChanged += new System.EventHandler(this.width_textBox_TextChanged);
             // 
             // width_label
             // 
@@ -77,6 +80,7 @@
             this.height_textBox.Name = "height_textBox";
             this.height_textBox.Size = new System.Drawing.Size(100, 19);
             this.height_textBox.TabIndex = 3;
+            this.height_textBox.TextChanged += new System.EventHandler(this.height_textBox_TextChanged);
             // 
             // height_label
             // 
@@ -127,6 +131,7 @@
             this.mainPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.mainPictureBox.TabIndex = 0;
             this.mainPictureBox.TabStop = false;
+            this.mainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.mainPictureBox_MouseMove);
             // 
             // picture_map
             // 
@@ -151,7 +156,7 @@
             // 
             // margin_textBox
             // 
-            this.margin_textBox.Location = new System.Drawing.Point(257, 112);
+            this.margin_textBox.Location = new System.Drawing.Point(363, 65);
             this.margin_textBox.Name = "margin_textBox";
             this.margin_textBox.Size = new System.Drawing.Size(100, 19);
             this.margin_textBox.TabIndex = 10;
@@ -196,14 +201,14 @@
             this.offset_textBox.TabIndex = 14;
             this.offset_textBox.TextChanged += new System.EventHandler(this.offset_textBox_TextChanged);
             // 
-            // offset_label
+            // paintOffset_label
             // 
-            this.offset_label.AutoSize = true;
-            this.offset_label.Location = new System.Drawing.Point(216, 65);
-            this.offset_label.Name = "offset_label";
-            this.offset_label.Size = new System.Drawing.Size(35, 12);
-            this.offset_label.TabIndex = 15;
-            this.offset_label.Text = "offset";
+            this.paintOffset_label.AutoSize = true;
+            this.paintOffset_label.Location = new System.Drawing.Point(156, 65);
+            this.paintOffset_label.Name = "paintOffset_label";
+            this.paintOffset_label.Size = new System.Drawing.Size(95, 12);
+            this.paintOffset_label.TabIndex = 15;
+            this.paintOffset_label.Text = "描画開始オフセット";
             // 
             // writeSize_label
             // 
@@ -263,18 +268,36 @@
             this.readLayer_label.TabIndex = 21;
             this.readLayer_label.Text = "読み込み階層";
             // 
+            // point_textBox
+            // 
+            this.point_textBox.Location = new System.Drawing.Point(257, 112);
+            this.point_textBox.Name = "point_textBox";
+            this.point_textBox.Size = new System.Drawing.Size(100, 19);
+            this.point_textBox.TabIndex = 22;
+            // 
+            // mouseOffset_label
+            // 
+            this.mouseOffset_label.AutoSize = true;
+            this.mouseOffset_label.Location = new System.Drawing.Point(142, 115);
+            this.mouseOffset_label.Name = "mouseOffset_label";
+            this.mouseOffset_label.Size = new System.Drawing.Size(109, 12);
+            this.mouseOffset_label.TabIndex = 23;
+            this.mouseOffset_label.Text = "カーソル直下オフセット";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(931, 703);
+            this.Controls.Add(this.mouseOffset_label);
+            this.Controls.Add(this.point_textBox);
             this.Controls.Add(this.readLayer_label);
             this.Controls.Add(this.writeLayer_label);
             this.Controls.Add(this.readLayer_listBox);
             this.Controls.Add(this.filter_checkedListBox);
             this.Controls.Add(this.readSize_label);
             this.Controls.Add(this.writeSize_label);
-            this.Controls.Add(this.offset_label);
+            this.Controls.Add(this.paintOffset_label);
             this.Controls.Add(this.offset_textBox);
             this.Controls.Add(this.row_label);
             this.Controls.Add(this.row_numericUpDown);
@@ -316,13 +339,15 @@
         private System.Windows.Forms.NumericUpDown row_numericUpDown;
         private System.Windows.Forms.Label row_label;
         private System.Windows.Forms.TextBox offset_textBox;
-        private System.Windows.Forms.Label offset_label;
+        private System.Windows.Forms.Label paintOffset_label;
         private System.Windows.Forms.Label writeSize_label;
         private System.Windows.Forms.Label readSize_label;
         private System.Windows.Forms.CheckedListBox filter_checkedListBox;
         private System.Windows.Forms.ListBox readLayer_listBox;
         private System.Windows.Forms.Label writeLayer_label;
         private System.Windows.Forms.Label readLayer_label;
+        private System.Windows.Forms.TextBox point_textBox;
+        private System.Windows.Forms.Label mouseOffset_label;
     }
 }
 

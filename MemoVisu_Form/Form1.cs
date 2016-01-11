@@ -28,8 +28,9 @@ namespace MemoVisu_Form
         List<List<int>> writeList = new List<List<int>>();
         List<List<int>> readList = new List<List<int>>();
 
-        int margin_x = 0;       //ブロック同士の横の間隔
-        int margin_y = 0;       //ブロック同士の縦の間隔
+        int margin = 10;
+        int intervalX = 0;       //ブロック同士の横の間隔
+        int intervalY = 0;       //ブロック同士の縦の間隔
         int width = 3;          //ブロックの幅
         int height = 3;         //ブロックの高さ
         int row = 0x100;        //1行あたりのブロック数
@@ -61,11 +62,9 @@ namespace MemoVisu_Form
 
             writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
             readSize_label.Text = "読み込みサイズ: " + readAddrs.Count;
-            int width = int.Parse(width_textBox.Text);
-            int height = int.Parse(height_textBox.Text);
 
             //メインのImageオブジェクトを作成する
-            Bitmap mainImg = new Bitmap(row * width + 20, 10000);
+            Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
             //ImageオブジェクトのGraphicsオブジェクトを作成する
             Graphics g = Graphics.FromImage(mainImg);
 
@@ -76,7 +75,7 @@ namespace MemoVisu_Form
                 int addr = 0x10000 * i;
                 int pos = addr - offset;
                 y = pos / row;
-                y = y * (margin_y + height);
+                y = y * (intervalY + height);
                 Pen p;
                 Font fnt;
                 if(addr % 0x100000 == 0)
@@ -89,7 +88,7 @@ namespace MemoVisu_Form
                     p = new Pen(Color.FromArgb(0x3F, Color.Blue), 2);
                     fnt = new Font("MS UI Gothic", 10);
                 }
-                g.DrawLine(p, 0, y, row * width + 20, y);
+                g.DrawLine(p, 0, y, row * width + margin*2, y);
                 g.DrawString(addr.ToString("X"), fnt, Brushes.Black, 0, y);
                 p.Dispose();
             }
@@ -102,7 +101,7 @@ namespace MemoVisu_Form
                 y = pos / row;
                 x = x * (margin_x + width);
                 y = y * (margin_y + height);
-                g.FillRectangle(new SolidBrush(Color.FromArgb(0x7F, Color.Blue)), x, y, row * width + 20, 3);
+                g.FillRectangle(new SolidBrush(Color.FromArgb(0x7F, Color.Blue)), x, y, row * width + margin*2, 3);
                 //フォントオブジェクトの作成
                 Font fnt = new Font("MS UI Gothic", 20);
                 //文字列を位置(0,0)、青色で表示
@@ -119,8 +118,8 @@ namespace MemoVisu_Form
                     int pos = addr - offset;
                     x = pos % row;
                     y = pos / row;
-                    x = x * (margin_x + width) + 10;
-                    y = y * (margin_y +  height);
+                    x = x * (intervalX + width) + margin;
+                    y = y * (intervalY +  height);
                     //塗りつぶされた長方形を描画する
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
                     g.FillRectangle(b, x, y, width, height);
@@ -136,8 +135,8 @@ namespace MemoVisu_Form
                     int pos = addr - offset;
                     x = pos % row;
                     y = pos / row;
-                    x = x * (margin_x + width) + 10;
-                    y = y * (margin_y + height);
+                    x = x * (intervalX + width) + margin;
+                    y = y * (intervalY + height);
                     //塗りつぶされた長方形を描画する
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
                     g.FillRectangle(b, x, y, width, height);
@@ -151,8 +150,8 @@ namespace MemoVisu_Form
                     int pos = eip - offset; //オフセット分を引く
                     x = pos % row;
                     y = pos / row;
-                    x = x * (margin_x + width) + 10;
-                    y = y * (margin_y + height);
+                    x = x * (intervalX + width) + margin;
+                    y = y * (intervalY + height);
                     //塗りつぶされた長方形を描画する
                     Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Red));
                     g.FillRectangle(b, x, y, width, height);
@@ -414,5 +413,25 @@ namespace MemoVisu_Form
         {
             offset = Convert.ToInt32(offset_textBox.Text, 16);
         }
+
+        private void mainPictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            int x = (e.Location.X - margin) / (width + intervalX);
+            int y = e.Location.Y / (width + intervalY);
+            int addr = y * row + x + offset;
+            //int addr = (e.Location.Y + row) / (intervalY + height) + offset;
+            point_textBox.Text = addr.ToString("X");
+        }
+
+        private void width_textBox_TextChanged(object sender, EventArgs e)
+        {
+            width = int.Parse(width_textBox.Text);
+        }
+
+        private void height_textBox_TextChanged(object sender, EventArgs e)
+        {
+            height = int.Parse(height_textBox.Text);
+        }
+        
     }
 }
