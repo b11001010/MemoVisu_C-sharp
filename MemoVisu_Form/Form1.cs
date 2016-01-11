@@ -21,6 +21,7 @@ namespace MemoVisu_Form
         int edx;
         int edi;
         int esi;
+        int ebp;
         ArrayList eips = new ArrayList();
         ArrayList writeAddrs = new ArrayList();
         ArrayList readAddrs = new ArrayList();
@@ -112,7 +113,7 @@ namespace MemoVisu_Form
             */
 
             //書き込みアドレス描画
-            if (filter_checkedListBox.GetItemChecked(0))
+            if (filter_checkedListBox.GetItemChecked(0) && writeLayer != -1)
             {
                 //foreach (int addr in writeAddrs)      //階層化処理無し
                 foreach (int addr in writeList[writeLayer])
@@ -129,7 +130,7 @@ namespace MemoVisu_Form
                 
             }
             //読み込みアドレス描画
-            if (filter_checkedListBox.GetItemChecked(1))
+            if (filter_checkedListBox.GetItemChecked(1) && readLayer != -1)
             {
                 //foreach (int addr in readAddrs)      //階層化処理無し
                 foreach (int addr in readList[readLayer])
@@ -237,13 +238,25 @@ namespace MemoVisu_Form
                                     {
                                         esi = Convert.ToInt32(regStringArray[1], 16);
                                     }
-                                    else if ("EDX" == regStringArray[0])
+                                    else if ("EAX" == regStringArray[0])
                                     {
-                                        edx = Convert.ToInt32(regStringArray[1], 16);
+                                        eax = Convert.ToInt32(regStringArray[1], 16);
                                     }
                                     else if ("EBX" == regStringArray[0])
                                     {
                                         ebx = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("ECX" == regStringArray[0])
+                                    {
+                                        ecx = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("EDX" == regStringArray[0])
+                                    {
+                                        edx = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("EBP" == regStringArray[0])
+                                    {
+                                        ebp = Convert.ToInt32(regStringArray[1], 16);
                                     }
                                     else
                                     {
@@ -252,41 +265,45 @@ namespace MemoVisu_Form
                                 }
                             }
                         }
-                        catch {/* nothing */}
+                        catch(FormatException) {/* nothing */}
                         
                         //正規表現でメモリアクセス命令を判別
-                        Regex writeRegex = new Regex(@"MOV (BYTE|WORD|DWORD) PTR DS:\[(..|...)\].*");   //書き込み
+                        Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(..|...)\].*");   //書き込み
                         Match writeMatch = writeRegex.Match(line);
                         int size = 0;
                         if (writeMatch.Success)
                         {
                             //書き込みサイズ取得
-                            if(writeMatch.Groups[1].Value == "BYTE")
+                            if(writeMatch.Groups[2].Value == "BYTE")
                             {
                                 size = 1;
                             }
-                            else if (writeMatch.Groups[1].Value == "WORD")
+                            else if (writeMatch.Groups[2].Value == "WORD")
                             {
                                 size = 2;
                             }
-                            else if (writeMatch.Groups[1].Value == "DWORD")
+                            else if (writeMatch.Groups[2].Value == "DWORD")
                             {
                                 size = 4;
+                            }
+                            else
+                            {
+                                throw new ArgumentException("不明なサイズ: " + writeMatch.Groups[2].Value);
                             }
 
                             //書き込み先アドレスを追加
                             int dstAddr;
-                            if (writeMatch.Groups[2].Value == "EDI")
+                            if (writeMatch.Groups[3].Value == "EDI")
                             {
                                 dstAddr = edi;
                             }
-                            else if (writeMatch.Groups[2].Value == "EBX")
+                            else if (writeMatch.Groups[3].Value == "EBX")
                             {
                                 dstAddr = ebx;
                             }
                             else
                             {
-                                continue;
+                                throw new ArgumentException("非対応のレジスタ: " + writeMatch.Groups[3].Value);
                             }
                             writeAddrs.Add(dstAddr);
 
@@ -324,73 +341,78 @@ namespace MemoVisu_Form
                             }
 
                         }
-                        else
+                        Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(..|...)\]"); //読み込み
+                        Match readMatch = readRegex.Match(line);
+                        if (readMatch.Success)
                         {
-                            Regex readRegex = new Regex(@"MOV ...?,(BYTE|WORD|DWORD) PTR DS:\[(..|...)\]"); //読み込み
-                            Match readMatch = readRegex.Match(line);
-                            if (readMatch.Success)
+                            //書き込みサイズ取得
+                            if (readMatch.Groups[2].Value == "BYTE")
                             {
-                                //書き込みサイズ取得
-                                if (writeMatch.Groups[1].Value == "BYTE")
-                                {
-                                    size = 1;
-                                }
-                                else if (writeMatch.Groups[1].Value == "WORD")
-                                {
-                                    size = 2;
-                                }
-                                else if (writeMatch.Groups[1].Value == "DWORD")
-                                {
-                                    size = 4;
-                                }
+                                size = 1;
+                            }
+                            else if (readMatch.Groups[2].Value == "WORD")
+                            {
+                                size = 2;
+                            }
+                            else if (readMatch.Groups[2].Value == "DWORD")
+                            {
+                                size = 4;
+                            }
+                            else
+                            {
+                                throw new ArgumentException("不明なサイズ: " + readMatch.Groups[2].Value);
+                            }
 
-                                //読み込み先アドレスを追加
-                                int srcAddr;
-                                if (readMatch.Groups[2].Value == "ESI")
+                            //読み込み先アドレスを追加
+                            int srcAddr;
+                            if (readMatch.Groups[3].Value == "ESI")
+                            {
+                                srcAddr = esi;
+                            }
+                            else if (readMatch.Groups[3].Value == "EDI")
+                            {
+                                srcAddr = edi;
+                            }
+                            else if (readMatch.Groups[3].Value == "EDX")
+                            {
+                                srcAddr = edx;
+                            }
+                            else if (readMatch.Groups[3].Value == "EBX")
+                            {
+                                srcAddr = ebx;
+                            }
+                            else
+                            {
+                                throw new ArgumentException("非対応のレジスタ: " + readMatch.Groups[3].Value);
+                            }
+                            readAddrs.Add(srcAddr);
+
+                            //階層化処理
+                            int i = 0;
+                            do
+                            {
+                                //読み込み先アドレスで階層マップを検索
+                                if (layerMap.ContainsKey(srcAddr + i))
                                 {
-                                    srcAddr = esi;
-                                }
-                                else if (readMatch.Groups[2].Value == "EDX")
-                                {
-                                    srcAddr = edx;
-                                }
-                                else if (readMatch.Groups[2].Value == "EBX")
-                                {
-                                    srcAddr = ebx;
+                                    //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
+                                    int layerLevel = layerMap[srcAddr + i];
+                                    while (readList.Count <= layerLevel)
+                                    {
+                                        readList.Add(new List<int>());
+                                    }
+                                    readList[layerLevel].Add(srcAddr + i);
                                 }
                                 else
                                 {
-                                    continue;
+                                    //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
+                                    if (readList.Count == 0)
+                                    {
+                                        readList.Add(new List<int>());
+                                    }
+                                    readList[0].Add(srcAddr + i);
                                 }
-                                readAddrs.Add(srcAddr);
-
-                                //階層化処理
-                                int i = 0;
-                                do
-                                {
-                                    //読み込み先アドレスで階層マップを検索
-                                    if (layerMap.ContainsKey(srcAddr + i))
-                                    {
-                                        //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
-                                        int layerLevel = layerMap[srcAddr + i];
-                                        while (readList.Count <= layerLevel)
-                                        {
-                                            readList.Add(new List<int>());
-                                        }
-                                        readList[layerLevel].Add(srcAddr + i);
-                                    }
-                                    else
-                                    {
-                                        //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
-                                        if (readList.Count == 0)
-                                        {
-                                            readList.Add(new List<int>());
-                                        }
-                                        readList[0].Add(srcAddr + i);
-                                    }
-                                    i++;
-                                } while (i < size);
-                            }
+                                i++;
+                            } while (i < size);
                         }
                     }
                     //閉じる
@@ -403,14 +425,14 @@ namespace MemoVisu_Form
                     {
                         layer_listBox.Items.Add(i);
                     }
-                    //layer_listBox.SetSelected(0, true);
+                    layer_listBox.SetSelected(0, true);
 
                     readLayer_listBox.Items.Clear();
                     for (int i = 0; i < readList.Count; i++)
                     {
                         readLayer_listBox.Items.Add(i);
                     }
-                    //readLayer_listBox.SetSelected(0, true);
+                    readLayer_listBox.SetSelected(0, true);
                 }
             }
         }
