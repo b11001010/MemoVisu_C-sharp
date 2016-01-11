@@ -15,7 +15,9 @@ namespace MemoVisu_Form
 {
     public partial class Form1 : Form
     {
+        int eax;
         int ebx;
+        int ecx;
         int edx;
         int edi;
         int esi;
@@ -221,22 +223,33 @@ namespace MemoVisu_Form
                         }
                         try {
                             //レジスタの値を更新
-                            string regString = line.Substring(line.Length - 12, 3);
-                            if ("EDI" == regString)
+                            string[] lineArray = line.Split(';');
+                            if(lineArray.Count() == 2)
                             {
-                                edi = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
-                            }
-                            else if("ESI" == regString)
-                            {
-                                esi = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
-                            }
-                            else if ("EDX" == regString)
-                            {
-                                edx = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
-                            }
-                            else if ("EBX" == regString)
-                            {
-                                ebx = Convert.ToInt32(line.Substring(line.Length - 8, 8), 16);
+                                foreach(String regString in lineArray[1].Split(','))
+                                {
+                                    String[] regStringArray = regString.Trim().Split('=');
+                                    if ("EDI" == regStringArray[0])
+                                    {
+                                        edi = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("ESI" == regStringArray[0])
+                                    {
+                                        esi = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("EDX" == regStringArray[0])
+                                    {
+                                        edx = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else if ("EBX" == regStringArray[0])
+                                    {
+                                        ebx = Convert.ToInt32(regStringArray[1], 16);
+                                    }
+                                    else
+                                    {
+                                        throw new ArgumentException("不明なレジスタ: " + regStringArray[0]);
+                                    }
+                                }
                             }
                         }
                         catch {/* nothing */}
@@ -390,14 +403,14 @@ namespace MemoVisu_Form
                     {
                         layer_listBox.Items.Add(i);
                     }
-                    layer_listBox.SetSelected(0, true);
+                    //layer_listBox.SetSelected(0, true);
 
                     readLayer_listBox.Items.Clear();
                     for (int i = 0; i < readList.Count; i++)
                     {
                         readLayer_listBox.Items.Add(i);
                     }
-                    readLayer_listBox.SetSelected(0, true);
+                    //readLayer_listBox.SetSelected(0, true);
                 }
             }
         }
