@@ -222,12 +222,13 @@ namespace MemoVisu_Form
                         {
                             continue;
                         }
-                        try {
+                        try
+                        {
                             //レジスタの値を更新
                             string[] lineArray = line.Split(';');
-                            if(lineArray.Count() == 2)
+                            if (lineArray.Count() == 2)
                             {
-                                foreach(String regString in lineArray[1].Split(','))
+                                foreach (String regString in lineArray[1].Split(','))
                                 {
                                     String[] regStringArray = regString.Trim().Split('=');
                                     if ("EDI" == regStringArray[0])
@@ -265,155 +266,15 @@ namespace MemoVisu_Form
                                 }
                             }
                         }
-                        catch(FormatException) {/* nothing */}
-                        
+                        catch (FormatException) {/* nothing */}
+
                         //正規表現でメモリアクセス命令を判別
                         Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(..|...)\].*");   //書き込み
-                        Match writeMatch = writeRegex.Match(line);
-                        int size = 0;
-                        if (writeMatch.Success)
-                        {
-                            //書き込みサイズ取得
-                            if(writeMatch.Groups[2].Value == "BYTE")
-                            {
-                                size = 1;
-                            }
-                            else if (writeMatch.Groups[2].Value == "WORD")
-                            {
-                                size = 2;
-                            }
-                            else if (writeMatch.Groups[2].Value == "DWORD")
-                            {
-                                size = 4;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("不明なサイズ: " + writeMatch.Groups[2].Value);
-                            }
-
-                            //書き込み先アドレスを追加
-                            int dstAddr;
-                            if (writeMatch.Groups[3].Value == "EDI")
-                            {
-                                dstAddr = edi;
-                            }
-                            else if (writeMatch.Groups[3].Value == "EBX")
-                            {
-                                dstAddr = ebx;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("非対応のレジスタ: " + writeMatch.Groups[3].Value);
-                            }
-                            writeAddrs.Add(dstAddr);
-
-                            //階層化処理
-                            //EIPで階層マップを検索
-                            if (layerMap.ContainsKey(eip))
-                            {
-                                //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
-                                int newLayerLevel = layerMap[eip] + 1;
-                                while(writeList.Count <= newLayerLevel)
-                                {
-                                    writeList.Add(new List<int>());
-                                }
-                                int i = 0;
-                                do
-                                {
-                                    layerMap[dstAddr + i] = newLayerLevel;
-                                    writeList[newLayerLevel].Add(dstAddr + i);
-                                } while (i < size);
-                            }
-                            else
-                            {
-                                //存在しない場合，書き込み先アドレスの階層レベルを1に設定
-                                while (writeList.Count <= 1)
-                                {
-                                    writeList.Add(new List<int>());
-                                }
-                                int i = 0;
-                                do
-                                {
-                                    layerMap[dstAddr + i] = 1;
-                                    writeList[1].Add(dstAddr + i);
-                                    i++;
-                                } while (i < size);
-                            }
-
-                        }
+                        checkWriteCode(line, eip, writeRegex);
                         Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(..|...)\]"); //読み込み
-                        Match readMatch = readRegex.Match(line);
-                        if (readMatch.Success)
-                        {
-                            //書き込みサイズ取得
-                            if (readMatch.Groups[2].Value == "BYTE")
-                            {
-                                size = 1;
-                            }
-                            else if (readMatch.Groups[2].Value == "WORD")
-                            {
-                                size = 2;
-                            }
-                            else if (readMatch.Groups[2].Value == "DWORD")
-                            {
-                                size = 4;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("不明なサイズ: " + readMatch.Groups[2].Value);
-                            }
-
-                            //読み込み先アドレスを追加
-                            int srcAddr;
-                            if (readMatch.Groups[3].Value == "ESI")
-                            {
-                                srcAddr = esi;
-                            }
-                            else if (readMatch.Groups[3].Value == "EDI")
-                            {
-                                srcAddr = edi;
-                            }
-                            else if (readMatch.Groups[3].Value == "EDX")
-                            {
-                                srcAddr = edx;
-                            }
-                            else if (readMatch.Groups[3].Value == "EBX")
-                            {
-                                srcAddr = ebx;
-                            }
-                            else
-                            {
-                                throw new ArgumentException("非対応のレジスタ: " + readMatch.Groups[3].Value);
-                            }
-                            readAddrs.Add(srcAddr);
-
-                            //階層化処理
-                            int i = 0;
-                            do
-                            {
-                                //読み込み先アドレスで階層マップを検索
-                                if (layerMap.ContainsKey(srcAddr + i))
-                                {
-                                    //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
-                                    int layerLevel = layerMap[srcAddr + i];
-                                    while (readList.Count <= layerLevel)
-                                    {
-                                        readList.Add(new List<int>());
-                                    }
-                                    readList[layerLevel].Add(srcAddr + i);
-                                }
-                                else
-                                {
-                                    //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
-                                    if (readList.Count == 0)
-                                    {
-                                        readList.Add(new List<int>());
-                                    }
-                                    readList[0].Add(srcAddr + i);
-                                }
-                                i++;
-                            } while (i < size);
-                        }
+                        checkReadCode(line, readRegex);
+                        readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(..|...)\]"); //読み込み
+                        checkReadCode(line, readRegex);
                     }
                     //閉じる
                     sr.Close();
@@ -435,6 +296,144 @@ namespace MemoVisu_Form
                     readLayer_listBox.SetSelected(0, true);
                 }
             }
+        }
+
+        private void checkWriteCode(string line, int eip, Regex writeRegex)
+        {
+            Match writeMatch = writeRegex.Match(line);
+            if (writeMatch.Success)
+            {
+                //書き込みサイズ取得
+                int size = getSize(writeMatch.Groups[2].Value);
+
+                //書き込み先アドレスを取得
+                int dstAddr;
+                dstAddr = getAddr(writeMatch.Groups[3].Value);
+                writeAddrs.Add(dstAddr);
+
+                //階層化処理
+                //EIPで階層マップを検索
+                if (layerMap.ContainsKey(eip))
+                {
+                    //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
+                    int newLayerLevel = layerMap[eip] + 1;
+                    while (writeList.Count <= newLayerLevel)
+                    {
+                        writeList.Add(new List<int>());
+                    }
+                    int i = 0;
+                    do
+                    {
+                        layerMap[dstAddr + i] = newLayerLevel;
+                        writeList[newLayerLevel].Add(dstAddr + i);
+                    } while (i < size);
+                }
+                else
+                {
+                    //存在しない場合，書き込み先アドレスの階層レベルを1に設定
+                    while (writeList.Count <= 1)
+                    {
+                        writeList.Add(new List<int>());
+                    }
+                    int i = 0;
+                    do
+                    {
+                        layerMap[dstAddr + i] = 1;
+                        writeList[1].Add(dstAddr + i);
+                        i++;
+                    } while (i < size);
+                }
+            }
+        }
+
+        private void checkReadCode(string line, Regex readRegex)
+        {
+            Match readMatch = readRegex.Match(line);
+            if (readMatch.Success)
+            {
+                //読み込みサイズ取得
+                int size = getSize(readMatch.Groups[2].Value);
+
+                //読み込み先アドレスを取得
+                int srcAddr;
+                srcAddr = getAddr(readMatch.Groups[3].Value);
+                readAddrs.Add(srcAddr);
+
+                //階層化処理
+                int i = 0;
+                do
+                {
+                    //読み込み先アドレスで階層マップを検索
+                    if (layerMap.ContainsKey(srcAddr + i))
+                    {
+                        //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
+                        int layerLevel = layerMap[srcAddr + i];
+                        while (readList.Count <= layerLevel)
+                        {
+                            readList.Add(new List<int>());
+                        }
+                        readList[layerLevel].Add(srcAddr + i);
+                    }
+                    else
+                    {
+                        //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
+                        if (readList.Count == 0)
+                        {
+                            readList.Add(new List<int>());
+                        }
+                        readList[0].Add(srcAddr + i);
+                    }
+                    i++;
+                } while (i < size);
+            }
+        }
+
+        private int getAddr(String addrString)
+        {
+            int addr;
+            if (addrString == "ESI")
+            {
+                addr = esi;
+            }
+            else if (addrString == "EDI")
+            {
+                addr = edi;
+            }
+            else if (addrString == "EDX")
+            {
+                addr = edx;
+            }
+            else if (addrString == "EBX")
+            {
+                addr = ebx;
+            }
+            else
+            {
+                throw new ArgumentException("非対応のレジスタ: " + addrString);
+            }
+            return addr;
+        }
+
+        private static int getSize(String  sizeString)
+        {
+            int size;
+            if (sizeString == "BYTE")
+            {
+                size = 1;
+            }
+            else if (sizeString == "WORD")
+            {
+                size = 2;
+            }
+            else if (sizeString == "DWORD")
+            {
+                size = 4;
+            }
+            else
+            {
+                throw new ArgumentException("不明なサイズ: " + sizeString);
+            }
+            return size;
         }
 
         //「折り返し幅」NumericUpDownの値の変更時
