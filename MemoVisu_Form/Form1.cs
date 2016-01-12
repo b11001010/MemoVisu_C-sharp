@@ -110,32 +110,38 @@ namespace MemoVisu_Form
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0) && writeLayer != -1)
             {
-                foreach (int addr in writeList[writeLayer])
+                foreach(KeyValuePair<int, byte> wa in writeLayerList[writeLayer])
                 {
-                    int pos = addr - offset;
-                    x = pos % row;
-                    y = pos / row;
-                    x = x * (intervalX + width) + margin;
-                    y = y * (intervalY +  height);
-                    //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
-                    g.FillRectangle(b, x, y, width, height);
+                    for(int i=0; i< wa.Value; i++)
+                    {
+                        int pos = wa.Key + i - offset;
+                        x = pos % row;
+                        y = pos / row;
+                        x = x * (intervalX + width) + margin;
+                        y = y * (intervalY + height);
+                        //塗りつぶされた長方形を描画する
+                        Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
+                        g.FillRectangle(b, x, y, width, height);
+                    }
                 }
                 
             }
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1) && readLayer != -1)
             {
-                foreach (int addr in readList[readLayer])
+                foreach (KeyValuePair<int, byte> ra in readLayerList[readLayer])
                 {
-                    int pos = addr - offset;
-                    x = pos % row;
-                    y = pos / row;
-                    x = x * (intervalX + width) + margin;
-                    y = y * (intervalY + height);
-                    //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
-                    g.FillRectangle(b, x, y, width, height);
+                    for (int i = 0; i < ra.Value; i++)
+                    {
+                        int pos = ra.Key + i - offset;
+                        x = pos % row;
+                        y = pos / row;
+                        x = x * (intervalX + width) + margin;
+                        y = y * (intervalY + height);
+                        //塗りつぶされた長方形を描画する
+                        Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
+                        g.FillRectangle(b, x, y, width, height);
+                    }
                 }
             }
             //実行描画
@@ -292,7 +298,7 @@ namespace MemoVisu_Form
 
                     //階層リストボックスを更新
                     layer_listBox.Items.Clear();
-                    for (int i = 0; i < writeList.Count; i++)
+                    for (int i = 0; i < writeLayerList.Count; i++)
                     {
                         layer_listBox.Items.Add(i);
                     }
@@ -302,7 +308,7 @@ namespace MemoVisu_Form
                     }
 
                     readLayer_listBox.Items.Clear();
-                    for (int i = 0; i < readList.Count; i++)
+                    for (int i = 0; i < readLayerList.Count; i++)
                     {
                         readLayer_listBox.Items.Add(i);
                     }
