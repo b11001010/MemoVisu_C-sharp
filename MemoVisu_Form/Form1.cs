@@ -24,8 +24,8 @@ namespace MemoVisu_Form
         int ebp;
         int esp;
         ArrayList eips = new ArrayList();
-        ArrayList writeAddrs = new ArrayList();
-        ArrayList readAddrs = new ArrayList();
+        //ArrayList writeAddrs = new ArrayList();
+        //ArrayList readAddrs = new ArrayList();
 
         //階層管理
         Dictionary<int, int> layerMap = new Dictionary<int, int>();
@@ -64,8 +64,8 @@ namespace MemoVisu_Form
             int writeLayer = layer_listBox.SelectedIndex;
             int readLayer = readLayer_listBox.SelectedIndex;
 
-            writeSize_label.Text = "書き込みサイズ: " + writeAddrs.Count;
-            readSize_label.Text = "読み込みサイズ: " + readAddrs.Count;
+            writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
+            readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
 
             //メインのImageオブジェクトを作成する
             Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
@@ -96,27 +96,10 @@ namespace MemoVisu_Form
                 g.DrawString(addr.ToString("X"), fnt, Brushes.Black, 0, y);
                 p.Dispose();
             }
-            /*
-            for (int i = 0; i < 100; i++)
-            {
-                int addr = 0x100000 * i;
-                int pos = addr - offset;
-                x = pos % row;
-                y = pos / row;
-                x = x * (margin_x + width);
-                y = y * (margin_y + height);
-                g.FillRectangle(new SolidBrush(Color.FromArgb(0x7F, Color.Blue)), x, y, row * width + margin*2, 3);
-                //フォントオブジェクトの作成
-                Font fnt = new Font("MS UI Gothic", 20);
-                //文字列を位置(0,0)、青色で表示
-                g.DrawString(addr.ToString("X"), fnt, Brushes.Black, x, y);
-            }
-            */
 
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0) && writeLayer != -1)
             {
-                //foreach (int addr in writeAddrs)      //階層化処理無し
                 foreach (int addr in writeList[writeLayer])
                 {
                     int pos = addr - offset;
@@ -133,7 +116,6 @@ namespace MemoVisu_Form
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1) && readLayer != -1)
             {
-                //foreach (int addr in readAddrs)      //階層化処理無し
                 foreach (int addr in readList[readLayer])
                 {
                     int pos = addr - offset;
@@ -276,6 +258,16 @@ namespace MemoVisu_Form
                         checkReadCode(line, readRegex);
                         readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
                         checkReadCode(line, readRegex);
+                        /*
+                        if (writeList.Count >= 2 && readList.Count >= 2)
+                        {
+                            System.Diagnostics.Debug.WriteLine("--------------------------------------------");
+                            System.Diagnostics.Debug.WriteLine("writeList[0].Count: " + writeList[0].Count);
+                            System.Diagnostics.Debug.WriteLine("readList[0].Count: " + readList[0].Count);
+                            System.Diagnostics.Debug.WriteLine("writeList[1].Count: " + writeList[1].Count);
+                            System.Diagnostics.Debug.WriteLine("readList[1].Count: " + readList[1].Count);
+                        }
+                        */
                     }
                     //閉じる
                     sr.Close();
@@ -287,14 +279,20 @@ namespace MemoVisu_Form
                     {
                         layer_listBox.Items.Add(i);
                     }
-                    layer_listBox.SetSelected(0, true);
+                    if (layer_listBox.Items.Count != 0)
+                    {
+                        layer_listBox.SetSelected(0, true);
+                    }
 
                     readLayer_listBox.Items.Clear();
                     for (int i = 0; i < readList.Count; i++)
                     {
                         readLayer_listBox.Items.Add(i);
                     }
-                    readLayer_listBox.SetSelected(0, true);
+                    if (readLayer_listBox.Items.Count != 0)
+                    {
+                        readLayer_listBox.SetSelected(0, true);
+                    }
                 }
             }
         }
@@ -310,7 +308,7 @@ namespace MemoVisu_Form
                 //書き込み先アドレスを取得
                 int dstAddr;
                 dstAddr = getAddr(writeMatch.Groups[3].Value);
-                writeAddrs.Add(dstAddr);
+                //writeAddrs.Add(dstAddr);
 
                 //階層化処理
                 //EIPで階層マップを検索
@@ -358,7 +356,7 @@ namespace MemoVisu_Form
                 //読み込み先アドレスを取得
                 int srcAddr;
                 srcAddr = getAddr(readMatch.Groups[3].Value);
-                readAddrs.Add(srcAddr);
+                //readAddrs.Add(srcAddr);
 
                 //階層化処理
                 int i = 0;
