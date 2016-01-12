@@ -22,6 +22,7 @@ namespace MemoVisu_Form
         int edi;
         int esi;
         int ebp;
+        int esp;
         ArrayList eips = new ArrayList();
         ArrayList writeAddrs = new ArrayList();
         ArrayList readAddrs = new ArrayList();
@@ -269,11 +270,11 @@ namespace MemoVisu_Form
                         catch (FormatException) {/* nothing */}
 
                         //正規表現でメモリアクセス命令を判別
-                        Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(..|...)\].*");   //書き込み
+                        Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*");   //書き込み
                         checkWriteCode(line, eip, writeRegex);
-                        Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(..|...)\]"); //読み込み
+                        Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
                         checkReadCode(line, readRegex);
-                        readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(..|...)\]"); //読み込み
+                        readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
                         checkReadCode(line, readRegex);
                     }
                     //閉じる
@@ -390,28 +391,64 @@ namespace MemoVisu_Form
 
         private int getAddr(String addrString)
         {
-            int addr;
-            if (addrString == "ESI")
+            String[] splitedMems = addrString.Replace("-", "+-").Split('+');
+            int result = 0;
+            foreach (String member in splitedMems)
             {
-                addr = esi;
+                String newMember = member;
+                int sign = 1;
+                int addr;
+                if (member.IndexOf('-') != -1)
+                {
+                    sign = -1;
+                    newMember = member.Remove(0, 1);
+                }
+                try
+                {
+                    addr = Convert.ToInt32(newMember, 16) * sign;
+                }
+                catch
+                {
+                    if (newMember == "ESI")
+                    {
+                        addr = esi * sign;
+                    }
+                    else if (newMember == "EDI")
+                    {
+                        addr = edi * sign;
+                    }
+                    else if (newMember == "EAX")
+                    {
+                        addr = eax * sign;
+                    }
+                    else if (newMember == "EBX")
+                    {
+                        addr = ebx * sign;
+                    }
+                    else if (newMember == "ECX")
+                    {
+                        addr = ecx * sign;
+                    }
+                    else if (newMember == "EDX")
+                    {
+                        addr = edx * sign;
+                    }
+                    else if (newMember == "EBP")
+                    {
+                        addr = ebp * sign;
+                    }
+                    else if (newMember == "ESP")
+                    {
+                        addr = esp * sign;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("非対応のレジスタ: " + newMember);
+                    }
+                }
+                result += addr;
             }
-            else if (addrString == "EDI")
-            {
-                addr = edi;
-            }
-            else if (addrString == "EDX")
-            {
-                addr = edx;
-            }
-            else if (addrString == "EBX")
-            {
-                addr = ebx;
-            }
-            else
-            {
-                throw new ArgumentException("非対応のレジスタ: " + addrString);
-            }
-            return addr;
+            return result;
         }
 
         private static int getSize(String  sizeString)
