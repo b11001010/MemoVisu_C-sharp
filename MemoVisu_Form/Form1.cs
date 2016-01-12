@@ -40,6 +40,13 @@ namespace MemoVisu_Form
         int row = 0x100;        //1行あたりのブロック数
         int offset = 0x3A0000;  //開始オフセット
 
+        enum SIZE :byte
+        {
+            BYTE  = 0x1,
+            WORD  = 0x2,
+            DWORD = 0x4,
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -64,8 +71,8 @@ namespace MemoVisu_Form
             int writeLayer = layer_listBox.SelectedIndex;
             int readLayer = readLayer_listBox.SelectedIndex;
 
-            writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
-            readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
+            //writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
+            //readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
 
             //メインのImageオブジェクトを作成する
             Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
@@ -252,12 +259,12 @@ namespace MemoVisu_Form
                         catch (FormatException) {/* nothing */}
 
                         //正規表現でメモリアクセス命令を判別
-                        Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*");   //書き込み
-                        checkWriteCode(line, eip, writeRegex);
-                        Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        checkReadCode(line, readRegex);
-                        readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        checkReadCode(line, readRegex);
+                        //Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*"); //書き込み
+                        //checkWriteCode(line, eip, writeRegex);
+                        //Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
+                        //checkReadCode(line, readRegex);
+                        //readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
+                        //checkReadCode(line, readRegex);
                         /*
                         if (writeList.Count >= 2 && readList.Count >= 2)
                         {
