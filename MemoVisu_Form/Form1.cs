@@ -262,6 +262,13 @@ namespace MemoVisu_Form
                         catch (FormatException) {/* nothing */}
 
                         //正規表現でメモリアクセス命令を判別
+                        string pattern = @"(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.*)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.*)\])|E[A-DS][[HILPX]|[0-9A-F]+)?";
+                        Match match = Regex.Match(line, pattern);
+                        if (match.Success)
+                        {
+                            checkCode(match.Groups, eip);
+                        }
+
                         //Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*"); //書き込み
                         //checkWriteCode(line, eip, writeRegex);
                         //Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
