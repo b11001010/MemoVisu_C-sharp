@@ -32,6 +32,9 @@ namespace MemoVisu_Form
         List<List<int>> writeList = new List<List<int>>();
         List<List<int>> readList = new List<List<int>>();
 
+        List<Dictionary<int, byte>> readLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>() };
+        List<Dictionary<int, byte>> writeLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>(), new Dictionary<int, byte>() };
+
         int margin = 10;
         int intervalX = 0;       //ブロック同士の横の間隔
         int intervalY = 0;       //ブロック同士の縦の間隔
@@ -303,6 +306,93 @@ namespace MemoVisu_Form
                 }
             }
         }
+
+        private void checkCode(GroupCollection gc, int eip)
+        {
+            if(gc["opecode"].Value == "LODS")
+                // READ
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                checkReadCode(gc["dst_addr"].Value, size);
+            }
+            else if (gc["dst"].Value != "")
+                // WRITE
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                checkWriteCode(gc["dst_addr"].Value, size, eip);
+            }
+            else if (gc["src"].Value != "")
+                // READ
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
+                checkReadCode(gc["src_addr"].Value, size);
+            }
+        }
+
+        private void checkWriteCode(string pointer, byte size, int eip)
+        {
+            //書き込み先アドレスを取得
+            int dstAddr = getAddr(pointer);
+
+            //階層化処理
+            //EIPで階層マップを検索
+            if (layerMap.ContainsKey(eip))
+            {
+                //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
+                int newLayerLevel = layerMap[eip] + 1;
+                while (writeLayerList.Count <= newLayerLevel)
+                {
+                    writeLayerList.Add(new Dictionary<int, byte>());
+                }
+                int i = 0;
+                do
+                {
+                    layerMap[dstAddr + i] = newLayerLevel;
+                    i++;
+                } while (i < size);
+                writeLayerList[newLayerLevel][dstAddr] = size;
+            }
+            else
+            {
+                int i = 0;
+                do
+                {
+                    layerMap[dstAddr + i] = 1;
+                    i++;
+                } while (i < size);
+                writeLayerList[1][dstAddr] = size;
+            }
+        }
+
+        private void checkReadCode(string pointer, byte size)
+        {
+            //読み込み先アドレスを取得
+            int srcAddr = getAddr(pointer);
+
+            //階層化処理
+            int i = 0;
+            //TODO: unnecessary 'do' statement maybe
+            do
+            {
+                //読み込み先アドレスで階層マップを検索
+                if (layerMap.ContainsKey(srcAddr + i))
+                {
+                    //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
+                    int layerLevel = layerMap[srcAddr + i];
+                    while (readLayerList.Count <= layerLevel)
+                    {
+                        readLayerList.Add(new Dictionary<int, byte>());
+                    }
+                    readLayerList[layerLevel][srcAddr] = size;
+                }
+                else
+                {
+                    readLayerList[0][srcAddr] = size;
+                }
+                i++;
+            } while (i < size);
+        }
+
 
         private void checkWriteCode(string line, int eip, Regex writeRegex)
         {
