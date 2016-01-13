@@ -345,7 +345,7 @@ namespace MemoVisu_Form
         private void checkWriteCode(string pointer, byte size, int eip)
         {
             //書き込み先アドレスを取得
-            int dstAddr = getAddr(pointer);
+            int dstAddr = getAddrRegex(pointer);
 
             //階層化処理
             //EIPで階層マップを検索
@@ -380,7 +380,7 @@ namespace MemoVisu_Form
         private void checkReadCode(string pointer, byte size)
         {
             //読み込み先アドレスを取得
-            int srcAddr = getAddr(pointer);
+            int srcAddr = getAddrRegex(pointer);
 
             //階層化処理
             int i = 0;
@@ -495,6 +495,99 @@ namespace MemoVisu_Form
                     i++;
                 } while (i < size);
             }
+        }
+
+        private int getAddrRegex(string addrString)
+        {
+            int addr = 0;
+            Match match = Regex.Match(addrString, @"(?<ope>[\+\-\*\/])?(?<reg>E?[A-DS][HILPX])|(?<adr>[0-9A-F]+)");
+            while (match.Success)
+            {
+                string reg = match.Groups["reg"].Value;
+                string adr = match.Groups["adr"].Value;
+                string ope = match.Groups["ope"].Value;
+
+                int tmpAddr = 0;
+                if(adr != "")
+                {
+                    tmpAddr = Convert.ToInt32(adr, 16);
+                }
+                else if(reg != "")
+                {
+                    if (reg == "ESI")
+                    {
+                        tmpAddr = esi;
+                    }
+                    else if (reg == "EDI")
+                    {
+                        tmpAddr = edi;
+                    }
+                    else if (reg == "EAX")
+                    {
+                        tmpAddr = eax;
+                    }
+                    else if (reg == "EBX")
+                    {
+                        tmpAddr = ebx;
+                    }
+                    else if (reg == "ECX")
+                    {
+                        tmpAddr = ecx;
+                    }
+                    else if (reg == "EDX")
+                    {
+                        tmpAddr = edx;
+                    }
+                    else if (reg == "EBP")
+                    {
+                        tmpAddr = ebp;
+                    }
+                    else if (reg == "ESP")
+                    {
+                        tmpAddr = esp;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("非対応のレジスタ: " + reg);
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("アドレスの解析に失敗： " + match.Groups[0].Value);
+                }
+
+                if(ope == "")
+                {
+                    addr = tmpAddr;
+                }
+                else
+                {
+                    if (ope == "+")
+                    {
+                        addr += tmpAddr;
+                    }
+                    else if (ope == "-")
+                    {
+                        addr -= tmpAddr;
+                    }
+                    else if (ope == "*")
+                    {
+                        addr *= tmpAddr;
+                    }
+                    else if (ope == "/")
+                    {
+                        addr /= tmpAddr;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("非対応の演算子： " + ope);
+                    }
+                }
+
+                match = match.NextMatch();
+            }
+
+            return addr;
         }
 
         private int getAddr(String addrString)
