@@ -213,20 +213,20 @@
             // writeSize_label
             // 
             this.writeSize_label.AutoSize = true;
-            this.writeSize_label.Location = new System.Drawing.Point(514, 94);
+            this.writeSize_label.Location = new System.Drawing.Point(544, 112);
             this.writeSize_label.Name = "writeSize_label";
-            this.writeSize_label.Size = new System.Drawing.Size(80, 12);
+            this.writeSize_label.Size = new System.Drawing.Size(89, 12);
             this.writeSize_label.TabIndex = 16;
-            this.writeSize_label.Text = "書き込みサイズ:";
+            this.writeSize_label.Text = "writeLayerList: 0";
             // 
             // readSize_label
             // 
             this.readSize_label.AutoSize = true;
-            this.readSize_label.Location = new System.Drawing.Point(512, 115);
+            this.readSize_label.Location = new System.Drawing.Point(544, 130);
             this.readSize_label.Name = "readSize_label";
-            this.readSize_label.Size = new System.Drawing.Size(82, 12);
+            this.readSize_label.Size = new System.Drawing.Size(86, 12);
             this.readSize_label.TabIndex = 17;
-            this.readSize_label.Text = "読み込みサイズ:";
+            this.readSize_label.Text = "readLayerList: 0";
             // 
             // filter_checkedListBox
             // 

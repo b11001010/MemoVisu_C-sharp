@@ -66,9 +66,11 @@ namespace MemoVisu_Form
         //「描画」ボタンクリック時
         private void button_paint_Click(object sender, EventArgs e)
         {
-
             int writeLayer = layer_listBox.SelectedIndex;
             int readLayer = readLayer_listBox.SelectedIndex;
+
+            writeSize_label.Text = "writeLayerList: " + writeLayerList[writeLayer].Count.ToString();
+            readSize_label.Text = "readLayerList: " + readLayerList[readLayer].Count.ToString();
 
             //メインのImageオブジェクトを作成する
             Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
@@ -385,9 +387,16 @@ namespace MemoVisu_Form
         private int getAddrRegex(string addrString)
         {
             int addr = 0;
-            Match match = Regex.Match(addrString, @"(?<ope>[\+\-\*\/])?(?<reg>E?[A-DS][HILPX])|(?<adr>[0-9A-F]+)");
+            Match match = Regex.Match(addrString, @"(?<ope>[\+\-\*\/])?(?<nop><.*>)|(?<reg>E?[A-DS][HILPX])|(?<adr>[0-9A-F]+)");
             while (match.Success)
             {
+                if(match.Groups["nop"].Value != "")
+                {
+                    match = match.NextMatch();
+                    continue;
+                }
+
+                //System.Diagnostics.Debug.Print(match.Groups.ToString());
                 string reg = match.Groups["reg"].Value;
                 string adr = match.Groups["adr"].Value;
                 string ope = match.Groups["ope"].Value;
@@ -505,6 +514,5 @@ namespace MemoVisu_Form
         {
             height = int.Parse(height_textBox.Text);
         }
-        
     }
 }
