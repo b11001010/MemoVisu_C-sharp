@@ -216,6 +216,13 @@ namespace MemoVisu_Form
                         {
                             continue;
                         }
+                        //正規表現でメモリアクセス命令を判別
+                        string pattern = @"(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
+                        Match match = Regex.Match(line, pattern);
+                        if (match.Success)
+                        {
+                            checkCode(match.Groups, eip);
+                        }
                         try
                         {
                             //レジスタの値を更新
@@ -253,6 +260,10 @@ namespace MemoVisu_Form
                                     {
                                         ebp = Convert.ToInt32(regStringArray[1], 16);
                                     }
+                                    else if ("ESP" == regStringArray[0])
+                                    {
+                                        esp = Convert.ToInt32(regStringArray[1], 16);
+                                    }
                                     else
                                     {
                                         throw new ArgumentException("不明なレジスタ: " + regStringArray[0]);
@@ -262,13 +273,6 @@ namespace MemoVisu_Form
                         }
                         catch (FormatException) {/* nothing */}
 
-                        //正規表現でメモリアクセス命令を判別
-                        string pattern = @"(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
-                        Match match = Regex.Match(line, pattern);
-                        if (match.Success)
-                        {
-                            checkCode(match.Groups, eip);
-                        }
                     }
                     //閉じる
                     sr.Close();
@@ -312,7 +316,7 @@ namespace MemoVisu_Form
                 byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                 checkWriteCode(gc["dst_addr"].Value, size, eip);
             }
-            else if (gc["src"].Value != "")
+            if (gc["src"].Value != "")
                 // READ
             {
                 byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
