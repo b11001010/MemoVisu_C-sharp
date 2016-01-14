@@ -32,6 +32,9 @@ namespace MemoVisu_Form
         List<List<int>> writeList = new List<List<int>>();
         List<List<int>> readList = new List<List<int>>();
 
+        List<Dictionary<int, byte>> readLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>() };
+        List<Dictionary<int, byte>> writeLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>(), new Dictionary<int, byte>() };
+
         int margin = 10;
         int intervalX = 0;       //ブロック同士の横の間隔
         int intervalY = 0;       //ブロック同士の縦の間隔
@@ -39,6 +42,13 @@ namespace MemoVisu_Form
         int height = 3;         //ブロックの高さ
         int row = 0x100;        //1行あたりのブロック数
         int offset = 0x3A0000;  //開始オフセット
+
+        enum SIZE :byte
+        {
+            BYTE  = 0x1,
+            WORD  = 0x2,
+            DWORD = 0x4,
+        }
 
         public Form1()
         {
@@ -64,8 +74,8 @@ namespace MemoVisu_Form
             int writeLayer = layer_listBox.SelectedIndex;
             int readLayer = readLayer_listBox.SelectedIndex;
 
-            writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
-            readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
+            //writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
+            //readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
 
             //メインのImageオブジェクトを作成する
             Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
@@ -100,32 +110,38 @@ namespace MemoVisu_Form
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0) && writeLayer != -1)
             {
-                foreach (int addr in writeList[writeLayer])
+                foreach(KeyValuePair<int, byte> wa in writeLayerList[writeLayer])
                 {
-                    int pos = addr - offset;
-                    x = pos % row;
-                    y = pos / row;
-                    x = x * (intervalX + width) + margin;
-                    y = y * (intervalY +  height);
-                    //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
-                    g.FillRectangle(b, x, y, width, height);
+                    for(int i=0; i< wa.Value; i++)
+                    {
+                        int pos = wa.Key + i - offset;
+                        x = pos % row;
+                        y = pos / row;
+                        x = x * (intervalX + width) + margin;
+                        y = y * (intervalY + height);
+                        //塗りつぶされた長方形を描画する
+                        Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Green));
+                        g.FillRectangle(b, x, y, width, height);
+                    }
                 }
                 
             }
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1) && readLayer != -1)
             {
-                foreach (int addr in readList[readLayer])
+                foreach (KeyValuePair<int, byte> ra in readLayerList[readLayer])
                 {
-                    int pos = addr - offset;
-                    x = pos % row;
-                    y = pos / row;
-                    x = x * (intervalX + width) + margin;
-                    y = y * (intervalY + height);
-                    //塗りつぶされた長方形を描画する
-                    Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
-                    g.FillRectangle(b, x, y, width, height);
+                    for (int i = 0; i < ra.Value; i++)
+                    {
+                        int pos = ra.Key + i - offset;
+                        x = pos % row;
+                        y = pos / row;
+                        x = x * (intervalX + width) + margin;
+                        y = y * (intervalY + height);
+                        //塗りつぶされた長方形を描画する
+                        Brush b = new SolidBrush(Color.FromArgb(0x7F, Color.Yellow));
+                        g.FillRectangle(b, x, y, width, height);
+                    }
                 }
             }
             //実行描画
@@ -252,12 +268,19 @@ namespace MemoVisu_Form
                         catch (FormatException) {/* nothing */}
 
                         //正規表現でメモリアクセス命令を判別
-                        Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*");   //書き込み
-                        checkWriteCode(line, eip, writeRegex);
-                        Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        checkReadCode(line, readRegex);
-                        readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        checkReadCode(line, readRegex);
+                        string pattern = @"(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
+                        Match match = Regex.Match(line, pattern);
+                        if (match.Success)
+                        {
+                            checkCode(match.Groups, eip);
+                        }
+
+                        //Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*"); //書き込み
+                        //checkWriteCode(line, eip, writeRegex);
+                        //Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
+                        //checkReadCode(line, readRegex);
+                        //readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
+                        //checkReadCode(line, readRegex);
                         /*
                         if (writeList.Count >= 2 && readList.Count >= 2)
                         {
@@ -275,7 +298,7 @@ namespace MemoVisu_Form
 
                     //階層リストボックスを更新
                     layer_listBox.Items.Clear();
-                    for (int i = 0; i < writeList.Count; i++)
+                    for (int i = 0; i < writeLayerList.Count; i++)
                     {
                         layer_listBox.Items.Add(i);
                     }
@@ -285,7 +308,7 @@ namespace MemoVisu_Form
                     }
 
                     readLayer_listBox.Items.Clear();
-                    for (int i = 0; i < readList.Count; i++)
+                    for (int i = 0; i < readLayerList.Count; i++)
                     {
                         readLayer_listBox.Items.Add(i);
                     }
@@ -296,6 +319,93 @@ namespace MemoVisu_Form
                 }
             }
         }
+
+        private void checkCode(GroupCollection gc, int eip)
+        {
+            if(gc["opecode"].Value == "LODS")
+                // READ
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                checkReadCode(gc["dst_addr"].Value, size);
+            }
+            else if (gc["dst"].Value != "")
+                // WRITE
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                checkWriteCode(gc["dst_addr"].Value, size, eip);
+            }
+            else if (gc["src"].Value != "")
+                // READ
+            {
+                byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
+                checkReadCode(gc["src_addr"].Value, size);
+            }
+        }
+
+        private void checkWriteCode(string pointer, byte size, int eip)
+        {
+            //書き込み先アドレスを取得
+            int dstAddr = getAddrRegex(pointer);
+
+            //階層化処理
+            //EIPで階層マップを検索
+            if (layerMap.ContainsKey(eip))
+            {
+                //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
+                int newLayerLevel = layerMap[eip] + 1;
+                while (writeLayerList.Count <= newLayerLevel)
+                {
+                    writeLayerList.Add(new Dictionary<int, byte>());
+                }
+                int i = 0;
+                do
+                {
+                    layerMap[dstAddr + i] = newLayerLevel;
+                    i++;
+                } while (i < size);
+                writeLayerList[newLayerLevel][dstAddr] = size;
+            }
+            else
+            {
+                int i = 0;
+                do
+                {
+                    layerMap[dstAddr + i] = 1;
+                    i++;
+                } while (i < size);
+                writeLayerList[1][dstAddr] = size;
+            }
+        }
+
+        private void checkReadCode(string pointer, byte size)
+        {
+            //読み込み先アドレスを取得
+            int srcAddr = getAddrRegex(pointer);
+
+            //階層化処理
+            int i = 0;
+            //TODO: unnecessary 'do' statement maybe
+            do
+            {
+                //読み込み先アドレスで階層マップを検索
+                if (layerMap.ContainsKey(srcAddr + i))
+                {
+                    //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
+                    int layerLevel = layerMap[srcAddr + i];
+                    while (readLayerList.Count <= layerLevel)
+                    {
+                        readLayerList.Add(new Dictionary<int, byte>());
+                    }
+                    readLayerList[layerLevel][srcAddr] = size;
+                }
+                else
+                {
+                    readLayerList[0][srcAddr] = size;
+                }
+                i++;
+            } while (i < size);
+        }
+
 
         private void checkWriteCode(string line, int eip, Regex writeRegex)
         {
@@ -385,6 +495,99 @@ namespace MemoVisu_Form
                     i++;
                 } while (i < size);
             }
+        }
+
+        private int getAddrRegex(string addrString)
+        {
+            int addr = 0;
+            Match match = Regex.Match(addrString, @"(?<ope>[\+\-\*\/])?(?<reg>E?[A-DS][HILPX])|(?<adr>[0-9A-F]+)");
+            while (match.Success)
+            {
+                string reg = match.Groups["reg"].Value;
+                string adr = match.Groups["adr"].Value;
+                string ope = match.Groups["ope"].Value;
+
+                int tmpAddr = 0;
+                if(adr != "")
+                {
+                    tmpAddr = Convert.ToInt32(adr, 16);
+                }
+                else if(reg != "")
+                {
+                    if (reg == "ESI")
+                    {
+                        tmpAddr = esi;
+                    }
+                    else if (reg == "EDI")
+                    {
+                        tmpAddr = edi;
+                    }
+                    else if (reg == "EAX")
+                    {
+                        tmpAddr = eax;
+                    }
+                    else if (reg == "EBX")
+                    {
+                        tmpAddr = ebx;
+                    }
+                    else if (reg == "ECX")
+                    {
+                        tmpAddr = ecx;
+                    }
+                    else if (reg == "EDX")
+                    {
+                        tmpAddr = edx;
+                    }
+                    else if (reg == "EBP")
+                    {
+                        tmpAddr = ebp;
+                    }
+                    else if (reg == "ESP")
+                    {
+                        tmpAddr = esp;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("非対応のレジスタ: " + reg);
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("アドレスの解析に失敗： " + match.Groups[0].Value);
+                }
+
+                if(ope == "")
+                {
+                    addr = tmpAddr;
+                }
+                else
+                {
+                    if (ope == "+")
+                    {
+                        addr += tmpAddr;
+                    }
+                    else if (ope == "-")
+                    {
+                        addr -= tmpAddr;
+                    }
+                    else if (ope == "*")
+                    {
+                        addr *= tmpAddr;
+                    }
+                    else if (ope == "/")
+                    {
+                        addr /= tmpAddr;
+                    }
+                    else
+                    {
+                        throw new ArgumentException("非対応の演算子： " + ope);
+                    }
+                }
+
+                match = match.NextMatch();
+            }
+
+            return addr;
         }
 
         private int getAddr(String addrString)
