@@ -51,8 +51,6 @@
             this.readLayer_label = new System.Windows.Forms.Label();
             this.point_textBox = new System.Windows.Forms.TextBox();
             this.mouseOffset_label = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -215,7 +213,7 @@
             // writeSize_label
             // 
             this.writeSize_label.AutoSize = true;
-            this.writeSize_label.Location = new System.Drawing.Point(514, 64);
+            this.writeSize_label.Location = new System.Drawing.Point(514, 94);
             this.writeSize_label.Name = "writeSize_label";
             this.writeSize_label.Size = new System.Drawing.Size(80, 12);
             this.writeSize_label.TabIndex = 16;
@@ -224,7 +222,7 @@
             // readSize_label
             // 
             this.readSize_label.AutoSize = true;
-            this.readSize_label.Location = new System.Drawing.Point(514, 85);
+            this.readSize_label.Location = new System.Drawing.Point(512, 115);
             this.readSize_label.Name = "readSize_label";
             this.readSize_label.Size = new System.Drawing.Size(82, 12);
             this.readSize_label.TabIndex = 17;
@@ -286,31 +284,11 @@
             this.mouseOffset_label.TabIndex = 23;
             this.mouseOffset_label.Text = "カーソル直下オフセット";
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(516, 124);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(82, 12);
-            this.label2.TabIndex = 25;
-            this.label2.Text = "読み込みサイズ:";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(516, 103);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(80, 12);
-            this.label1.TabIndex = 24;
-            this.label1.Text = "書き込みサイズ:";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(931, 703);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.mouseOffset_label);
             this.Controls.Add(this.point_textBox);
             this.Controls.Add(this.readLayer_label);
@@ -370,8 +348,6 @@
         private System.Windows.Forms.Label readLayer_label;
         private System.Windows.Forms.TextBox point_textBox;
         private System.Windows.Forms.Label mouseOffset_label;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
     }
 }
 

@@ -24,13 +24,9 @@ namespace MemoVisu_Form
         int ebp;
         int esp;
         ArrayList eips = new ArrayList();
-        //ArrayList writeAddrs = new ArrayList();
-        //ArrayList readAddrs = new ArrayList();
 
         //階層管理
         Dictionary<int, int> layerMap = new Dictionary<int, int>();
-        List<List<int>> writeList = new List<List<int>>();
-        List<List<int>> readList = new List<List<int>>();
 
         List<Dictionary<int, byte>> readLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>() };
         List<Dictionary<int, byte>> writeLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>(), new Dictionary<int, byte>() };
@@ -73,9 +69,6 @@ namespace MemoVisu_Form
 
             int writeLayer = layer_listBox.SelectedIndex;
             int readLayer = readLayer_listBox.SelectedIndex;
-
-            //writeSize_label.Text = "書き込みリスト要素数: " + writeList[1].Count;
-            //readSize_label.Text = "読み込みリスト要素数: " + readList[1].Count;
 
             //メインのImageオブジェクトを作成する
             Bitmap mainImg = new Bitmap(row * width + margin*2, 10000);
@@ -274,23 +267,6 @@ namespace MemoVisu_Form
                         {
                             checkCode(match.Groups, eip);
                         }
-
-                        //Regex writeRegex = new Regex(@"(MOV|MOVS|STOS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\],.*"); //書き込み
-                        //checkWriteCode(line, eip, writeRegex);
-                        //Regex readRegex = new Regex(@"(MOV|MOVS) .*,(BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        //checkReadCode(line, readRegex);
-                        //readRegex = new Regex(@"(LODS) (BYTE|WORD|DWORD) PTR ..:\[(.*)\]"); //読み込み
-                        //checkReadCode(line, readRegex);
-                        /*
-                        if (writeList.Count >= 2 && readList.Count >= 2)
-                        {
-                            System.Diagnostics.Debug.WriteLine("--------------------------------------------");
-                            System.Diagnostics.Debug.WriteLine("writeList[0].Count: " + writeList[0].Count);
-                            System.Diagnostics.Debug.WriteLine("readList[0].Count: " + readList[0].Count);
-                            System.Diagnostics.Debug.WriteLine("writeList[1].Count: " + writeList[1].Count);
-                            System.Diagnostics.Debug.WriteLine("readList[1].Count: " + readList[1].Count);
-                        }
-                        */
                     }
                     //閉じる
                     sr.Close();
@@ -405,98 +381,7 @@ namespace MemoVisu_Form
                 i++;
             } while (i < size);
         }
-
-
-        private void checkWriteCode(string line, int eip, Regex writeRegex)
-        {
-            Match writeMatch = writeRegex.Match(line);
-            if (writeMatch.Success)
-            {
-                //書き込みサイズ取得
-                int size = getSize(writeMatch.Groups[2].Value);
-
-                //書き込み先アドレスを取得
-                int dstAddr;
-                dstAddr = getAddr(writeMatch.Groups[3].Value);
-                //writeAddrs.Add(dstAddr);
-
-                //階層化処理
-                //EIPで階層マップを検索
-                if (layerMap.ContainsKey(eip))
-                {
-                    //存在する場合，書き込み先アドレスの階層レベルをEIPの階層レベル+1に設定
-                    int newLayerLevel = layerMap[eip] + 1;
-                    while (writeList.Count <= newLayerLevel)
-                    {
-                        writeList.Add(new List<int>());
-                    }
-                    int i = 0;
-                    do
-                    {
-                        layerMap[dstAddr + i] = newLayerLevel;
-                        writeList[newLayerLevel].Add(dstAddr + i);
-                    } while (i < size);
-                }
-                else
-                {
-                    //存在しない場合，書き込み先アドレスの階層レベルを1に設定
-                    while (writeList.Count <= 1)
-                    {
-                        writeList.Add(new List<int>());
-                    }
-                    int i = 0;
-                    do
-                    {
-                        layerMap[dstAddr + i] = 1;
-                        writeList[1].Add(dstAddr + i);
-                        i++;
-                    } while (i < size);
-                }
-            }
-        }
-
-        private void checkReadCode(string line, Regex readRegex)
-        {
-            Match readMatch = readRegex.Match(line);
-            if (readMatch.Success)
-            {
-                //読み込みサイズ取得
-                int size = getSize(readMatch.Groups[2].Value);
-
-                //読み込み先アドレスを取得
-                int srcAddr;
-                srcAddr = getAddr(readMatch.Groups[3].Value);
-                //readAddrs.Add(srcAddr);
-
-                //階層化処理
-                int i = 0;
-                do
-                {
-                    //読み込み先アドレスで階層マップを検索
-                    if (layerMap.ContainsKey(srcAddr + i))
-                    {
-                        //存在する場合，読み込み先アドレスを該当階層レベル配列に追加
-                        int layerLevel = layerMap[srcAddr + i];
-                        while (readList.Count <= layerLevel)
-                        {
-                            readList.Add(new List<int>());
-                        }
-                        readList[layerLevel].Add(srcAddr + i);
-                    }
-                    else
-                    {
-                        //存在しない場合，読み込み先アドレスを階層レベル0配列に追加
-                        if (readList.Count == 0)
-                        {
-                            readList.Add(new List<int>());
-                        }
-                        readList[0].Add(srcAddr + i);
-                    }
-                    i++;
-                } while (i < size);
-            }
-        }
-
+        
         private int getAddrRegex(string addrString)
         {
             int addr = 0;
@@ -588,90 +473,6 @@ namespace MemoVisu_Form
             }
 
             return addr;
-        }
-
-        private int getAddr(String addrString)
-        {
-            String[] splitedMems = addrString.Replace("-", "+-").Split('+');
-            int result = 0;
-            foreach (String member in splitedMems)
-            {
-                String newMember = member;
-                int sign = 1;
-                int addr;
-                if (member.IndexOf('-') != -1)
-                {
-                    sign = -1;
-                    newMember = member.Remove(0, 1);
-                }
-                try
-                {
-                    addr = Convert.ToInt32(newMember, 16) * sign;
-                }
-                catch
-                {
-                    if (newMember == "ESI")
-                    {
-                        addr = esi * sign;
-                    }
-                    else if (newMember == "EDI")
-                    {
-                        addr = edi * sign;
-                    }
-                    else if (newMember == "EAX")
-                    {
-                        addr = eax * sign;
-                    }
-                    else if (newMember == "EBX")
-                    {
-                        addr = ebx * sign;
-                    }
-                    else if (newMember == "ECX")
-                    {
-                        addr = ecx * sign;
-                    }
-                    else if (newMember == "EDX")
-                    {
-                        addr = edx * sign;
-                    }
-                    else if (newMember == "EBP")
-                    {
-                        addr = ebp * sign;
-                    }
-                    else if (newMember == "ESP")
-                    {
-                        addr = esp * sign;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("非対応のレジスタ: " + newMember);
-                    }
-                }
-                result += addr;
-            }
-            return result;
-        }
-
-        private static int getSize(String  sizeString)
-        {
-            int size;
-            if (sizeString == "BYTE")
-            {
-                size = 1;
-            }
-            else if (sizeString == "WORD")
-            {
-                size = 2;
-            }
-            else if (sizeString == "DWORD")
-            {
-                size = 4;
-            }
-            else
-            {
-                throw new ArgumentException("不明なサイズ: " + sizeString);
-            }
-            return size;
         }
 
         //「折り返し幅」NumericUpDownの値の変更時
