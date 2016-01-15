@@ -15,6 +15,7 @@ namespace MemoVisu_Form
 {
     public partial class Form1 : Form
     {
+        /*
         int eax;
         int ebx;
         int ecx;
@@ -23,13 +24,26 @@ namespace MemoVisu_Form
         int esi;
         int ebp;
         int esp;
+        */
+        //レジスタ
+        Dictionary<String, uint> regs = new Dictionary<String, uint>()
+        {
+            {"EAX", 0},
+            {"EBX", 0},
+            {"ECX", 0},
+            {"EDX", 0},
+            {"EDI", 0},
+            {"ESI", 0},
+            {"EBP", 0},
+            {"ESP", 0}
+        };
         ArrayList eips = new ArrayList();
 
         //階層管理
-        Dictionary<int, int> layerMap = new Dictionary<int, int>();
+        Dictionary<uint, int> layerMap = new Dictionary<uint, int>();
 
-        List<Dictionary<int, byte>> readLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>() };
-        List<Dictionary<int, byte>> writeLayerList = new List<Dictionary<int, byte>>() { new Dictionary<int, byte>(), new Dictionary<int, byte>() };
+        List<Dictionary<uint, byte>> readLayerList = new List<Dictionary<uint, byte>>() { new Dictionary<uint, byte>() };
+        List<Dictionary<uint, byte>> writeLayerList = new List<Dictionary<uint, byte>>() { new Dictionary<uint, byte>(), new Dictionary<uint, byte>() };
 
         int margin = 10;
         int intervalX = 0;       //ブロック同士の横の間隔
@@ -37,7 +51,7 @@ namespace MemoVisu_Form
         int width = 3;          //ブロックの幅
         int height = 3;         //ブロックの高さ
         int row = 0x100;        //1行あたりのブロック数
-        int offset = 0x3A0000;  //開始オフセット
+        uint offset = 0x3A0000;  //開始オフセット
 
         enum SIZE :byte
         {
@@ -82,7 +96,7 @@ namespace MemoVisu_Form
             for (int i = 0; i < 1000; i++)
             {
                 int addr = 0x10000 * i;
-                int pos = addr - offset;
+                int pos = (int)(addr - offset);
                 y = pos / row;
                 y = y * (intervalY + height);
                 Pen p;
@@ -105,13 +119,13 @@ namespace MemoVisu_Form
             //書き込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(0) && writeLayer != -1)
             {
-                foreach(KeyValuePair<int, byte> wa in writeLayerList[writeLayer])
+                foreach(KeyValuePair<uint, byte> wa in writeLayerList[writeLayer])
                 {
-                    for(int i=0; i< wa.Value; i++)
+                    for(uint i=0; i< wa.Value; i++)
                     {
-                        int pos = wa.Key + i - offset;
-                        x = pos % row;
-                        y = pos / row;
+                        uint pos = wa.Key + i - offset;
+                        x = (int)(pos % row);
+                        y = (int)(pos / row);
                         x = x * (intervalX + width) + margin;
                         y = y * (intervalY + height);
                         //塗りつぶされた長方形を描画する
@@ -124,13 +138,13 @@ namespace MemoVisu_Form
             //読み込みアドレス描画
             if (filter_checkedListBox.GetItemChecked(1) && readLayer != -1)
             {
-                foreach (KeyValuePair<int, byte> ra in readLayerList[readLayer])
+                foreach (KeyValuePair<uint, byte> ra in readLayerList[readLayer])
                 {
-                    for (int i = 0; i < ra.Value; i++)
+                    for (uint i = 0; i < ra.Value; i++)
                     {
-                        int pos = ra.Key + i - offset;
-                        x = pos % row;
-                        y = pos / row;
+                        uint pos = ra.Key + i - offset;
+                        x = (int)(pos % row);
+                        y = (int)(pos / row);
                         x = x * (intervalX + width) + margin;
                         y = y * (intervalY + height);
                         //塗りつぶされた長方形を描画する
@@ -142,11 +156,11 @@ namespace MemoVisu_Form
             //実行描画
             if (filter_checkedListBox.GetItemChecked(2))
             {
-                foreach (int eip in eips)
+                foreach (uint eip in eips)
                 {
-                    int pos = eip - offset; //オフセット分を引く
-                    x = pos % row;
-                    y = pos / row;
+                    uint pos = eip - offset; //オフセット分を引く
+                    x = (int)(pos % row);
+                    y = (int)(pos / row);
                     x = x * (intervalX + width) + margin;
                     y = y * (intervalY + height);
                     //塗りつぶされた長方形を描画する
@@ -205,11 +219,11 @@ namespace MemoVisu_Form
                     StreamReader sr = new StreamReader(stream);
                     while ((line = sr.ReadLine()) != null)
                     {
-                        int eip;
+                        uint eip;
                         try
                         {
                             //EIPをリストに格納
-                            eip = Convert.ToInt32(line.Substring(0, 8), 16);
+                            eip = Convert.ToUInt32(line.Substring(0, 8), 16);
                             eips.Add(eip);
                         }
                         catch
@@ -217,7 +231,7 @@ namespace MemoVisu_Form
                             continue;
                         }
                         //正規表現でメモリアクセス命令を判別
-                        string pattern = @"(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
+                        string pattern = @"(?<rep>REP )?(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
                         Match match = Regex.Match(line, pattern);
                         if (match.Success)
                         {
@@ -232,41 +246,9 @@ namespace MemoVisu_Form
                                 foreach (String regString in lineArray[1].Split(','))
                                 {
                                     String[] regStringArray = regString.Trim().Split('=');
-                                    if ("EDI" == regStringArray[0])
+                                    if (regs.ContainsKey(regStringArray[0]))
                                     {
-                                        edi = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("ESI" == regStringArray[0])
-                                    {
-                                        esi = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("EAX" == regStringArray[0])
-                                    {
-                                        eax = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("EBX" == regStringArray[0])
-                                    {
-                                        ebx = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("ECX" == regStringArray[0])
-                                    {
-                                        ecx = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("EDX" == regStringArray[0])
-                                    {
-                                        edx = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("EBP" == regStringArray[0])
-                                    {
-                                        ebp = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else if ("ESP" == regStringArray[0])
-                                    {
-                                        esp = Convert.ToInt32(regStringArray[1], 16);
-                                    }
-                                    else
-                                    {
-                                        throw new ArgumentException("不明なレジスタ: " + regStringArray[0]);
+                                        regs[regStringArray[0]] = Convert.ToUInt32(regStringArray[1], 16);
                                     }
                                 }
                             }
@@ -302,9 +284,14 @@ namespace MemoVisu_Form
             }
         }
 
-        private void checkCode(GroupCollection gc, int eip)
+        private void checkCode(GroupCollection gc, uint eip)
         {
-            if(gc["opecode"].Value == "LODS")
+            
+            if (gc["rep"].Value == "REP ")
+            {
+                //TODO: REPが先頭についてる時の動作
+            }
+            if (gc["opecode"].Value == "LODS")
                 // READ
             {
                 byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
@@ -324,10 +311,10 @@ namespace MemoVisu_Form
             }
         }
 
-        private void checkWriteCode(string pointer, byte size, int eip)
+        private void checkWriteCode(string pointer, byte size, uint eip)
         {
             //書き込み先アドレスを取得
-            int dstAddr = getAddrRegex(pointer);
+            uint dstAddr = getAddrRegex(pointer);
 
             //階層化処理
             //EIPで階層マップを検索
@@ -337,9 +324,9 @@ namespace MemoVisu_Form
                 int newLayerLevel = layerMap[eip] + 1;
                 while (writeLayerList.Count <= newLayerLevel)
                 {
-                    writeLayerList.Add(new Dictionary<int, byte>());
+                    writeLayerList.Add(new Dictionary<uint, byte>());
                 }
-                int i = 0;
+                uint i = 0;
                 do
                 {
                     layerMap[dstAddr + i] = newLayerLevel;
@@ -349,7 +336,7 @@ namespace MemoVisu_Form
             }
             else
             {
-                int i = 0;
+                uint i = 0;
                 do
                 {
                     layerMap[dstAddr + i] = 1;
@@ -362,10 +349,10 @@ namespace MemoVisu_Form
         private void checkReadCode(string pointer, byte size)
         {
             //読み込み先アドレスを取得
-            int srcAddr = getAddrRegex(pointer);
+            uint srcAddr = getAddrRegex(pointer);
 
             //階層化処理
-            int i = 0;
+            uint i = 0;
             //TODO: unnecessary 'do' statement maybe
             do
             {
@@ -376,7 +363,7 @@ namespace MemoVisu_Form
                     int layerLevel = layerMap[srcAddr + i];
                     while (readLayerList.Count <= layerLevel)
                     {
-                        readLayerList.Add(new Dictionary<int, byte>());
+                        readLayerList.Add(new Dictionary<uint, byte>());
                     }
                     readLayerList[layerLevel][srcAddr] = size;
                 }
@@ -388,9 +375,9 @@ namespace MemoVisu_Form
             } while (i < size);
         }
         
-        private int getAddrRegex(string addrString)
+        private uint getAddrRegex(string addrString)
         {
-            int addr = 0;
+            uint addr = 0;
             Match match = Regex.Match(addrString, @"(?<ope>[\+\-\*\/])?(?<nop><.*>)|(?<reg>E?[A-DS][HILPX])|(?<adr>[0-9A-F]+)");
             while (match.Success)
             {
@@ -405,11 +392,16 @@ namespace MemoVisu_Form
                 string adr = match.Groups["adr"].Value;
                 string ope = match.Groups["ope"].Value;
 
-                int tmpAddr = 0;
+                uint tmpAddr = 0;
                 if(adr != "")
                 {
-                    tmpAddr = Convert.ToInt32(adr, 16);
+                    tmpAddr = Convert.ToUInt32(adr, 16);
                 }
+                else if (reg != "" && regs.ContainsKey(reg))
+                {
+                    tmpAddr = regs[reg];
+                }
+                /*
                 else if(reg != "")
                 {
                     if (reg == "ESI")
@@ -449,6 +441,7 @@ namespace MemoVisu_Form
                         throw new ArgumentException("非対応のレジスタ: " + reg);
                     }
                 }
+                */
                 else
                 {
                     throw new ArgumentException("アドレスの解析に失敗： " + match.Groups[0].Value);
@@ -497,14 +490,14 @@ namespace MemoVisu_Form
         //「offset」テキストボックスの値変更時
         private void offset_textBox_TextChanged(object sender, EventArgs e)
         {
-            offset = Convert.ToInt32(offset_textBox.Text, 16);
+            offset = Convert.ToUInt32(offset_textBox.Text, 16);
         }
 
         private void mainPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
             int x = (e.Location.X - margin) / (width + intervalX);
             int y = e.Location.Y / (width + intervalY);
-            int addr = y * row + x + offset;
+            int addr = (int)(y * row + x + offset);
             //int addr = (e.Location.Y + row) / (intervalY + height) + offset;
             point_textBox.Text = addr.ToString("X");
         }
