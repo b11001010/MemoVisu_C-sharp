@@ -46,8 +46,8 @@ namespace MemoVisu_Form
         List<Dictionary<uint, byte>> writeLayerList = new List<Dictionary<uint, byte>>() { new Dictionary<uint, byte>(), new Dictionary<uint, byte>() };
 
         int margin = 10;
-        int intervalX = 0;       //ブロック同士の横の間隔
-        int intervalY = 0;       //ブロック同士の縦の間隔
+        int intervalX = 1;       //ブロック同士の横の間隔
+        int intervalY = 1;       //ブロック同士の縦の間隔
         int width = 3;          //ブロックの幅
         int height = 3;         //ブロックの高さ
         int row = 0x100;        //1行あたりのブロック数
@@ -231,7 +231,7 @@ namespace MemoVisu_Form
                             continue;
                         }
                         //正規表現でメモリアクセス命令を判別
-                        string pattern = @"(?<rep>REP )?(?<opecode>MOV|MOVS|STOS|LODS) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
+                        string pattern = @"(?<rep>REP )?(?<opecode>MOV|MOVS|STOS|LODS|XCHG|ADD|SUB|MUL|DIV|NOT|AND|OR|XOR|INC|DEC|SHR|ROL|NEG) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
                         Match match = Regex.Match(line, pattern);
                         if (match.Success)
                         {
@@ -290,44 +290,47 @@ namespace MemoVisu_Form
             {
                 while (regs["ECX"] != 0)
                 {
-                    if (gc["opecode"].Value == "LODS")
+                    if (gc["opecode"].Value == "LODS" || gc["opecode"].Value == "MUL" || gc["opecode"].Value == "DIV")
                     // READ
                     {
-                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
-                        checkReadCode(gc["dst_addr"].Value, size);
-                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
+                        if (gc["dst_size"].Value != "")
+                        {
+                            byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                            checkReadCode(gc["dst_addr"].Value, size);
+                        }
                     }
-                    else if (gc["dst"].Value != "")
+                    else if (gc["dst"].Value != "" && gc["dst_size"].Value != "")
                     // WRITE
                     {
                         byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                         checkWriteCode(gc["dst_addr"].Value, size, eip);
-                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
                     }
-                    if (gc["src"].Value != "")
+                    if (gc["src"].Value != "" && gc["src_size"].Value != "")
                     // READ
                     {
                         byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
                         checkReadCode(gc["src_addr"].Value, size);
-                        regs[gc["src_addr"].Value] = regs[gc["src_addr"].Value] + size;
                     }
                     regs["ECX"] = regs["ECX"] - 1;
                 }
                 return;
             }
-            if (gc["opecode"].Value == "LODS")
+            if (gc["opecode"].Value == "LODS" || gc["opecode"].Value == "MUL" || gc["opecode"].Value == "DIV")
                 // READ
             {
-                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
-                checkReadCode(gc["dst_addr"].Value, size);
+                if(gc["dst_size"].Value != "")
+                {
+                    byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                    checkReadCode(gc["dst_addr"].Value, size);
+                }
             }
-            else if (gc["dst"].Value != "")
-                // WRITE
+            else if (gc["dst"].Value != "" && gc["dst_size"].Value != "")
+            // WRITE
             {
                 byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                 checkWriteCode(gc["dst_addr"].Value, size, eip);
             }
-            if (gc["src"].Value != "")
+            if (gc["src"].Value != "" && gc["src_size"].Value != "")
                 // READ
             {
                 byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
@@ -425,47 +428,6 @@ namespace MemoVisu_Form
                 {
                     tmpAddr = regs[reg];
                 }
-                /*
-                else if(reg != "")
-                {
-                    if (reg == "ESI")
-                    {
-                        tmpAddr = esi;
-                    }
-                    else if (reg == "EDI")
-                    {
-                        tmpAddr = edi;
-                    }
-                    else if (reg == "EAX")
-                    {
-                        tmpAddr = eax;
-                    }
-                    else if (reg == "EBX")
-                    {
-                        tmpAddr = ebx;
-                    }
-                    else if (reg == "ECX")
-                    {
-                        tmpAddr = ecx;
-                    }
-                    else if (reg == "EDX")
-                    {
-                        tmpAddr = edx;
-                    }
-                    else if (reg == "EBP")
-                    {
-                        tmpAddr = ebp;
-                    }
-                    else if (reg == "ESP")
-                    {
-                        tmpAddr = esp;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("非対応のレジスタ: " + reg);
-                    }
-                }
-                */
                 else
                 {
                     throw new ArgumentException("アドレスの解析に失敗： " + match.Groups[0].Value);
