@@ -286,10 +286,34 @@ namespace MemoVisu_Form
 
         private void checkCode(GroupCollection gc, uint eip)
         {
-            
             if (gc["rep"].Value == "REP ")
             {
-                //TODO: REPが先頭についてる時の動作
+                while (regs["ECX"] != 0)
+                {
+                    if (gc["opecode"].Value == "LODS")
+                    // READ
+                    {
+                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                        checkReadCode(gc["dst_addr"].Value, size);
+                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
+                    }
+                    else if (gc["dst"].Value != "")
+                    // WRITE
+                    {
+                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                        checkWriteCode(gc["dst_addr"].Value, size, eip);
+                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
+                    }
+                    if (gc["src"].Value != "")
+                    // READ
+                    {
+                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
+                        checkReadCode(gc["src_addr"].Value, size);
+                        regs[gc["src_addr"].Value] = regs[gc["src_addr"].Value] + size;
+                    }
+                    regs["ECX"] = regs["ECX"] - 1;
+                }
+                return;
             }
             if (gc["opecode"].Value == "LODS")
                 // READ
