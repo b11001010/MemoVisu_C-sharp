@@ -235,7 +235,7 @@ namespace MemoVisu_Form
                         Match match = Regex.Match(line, pattern);
                         if (match.Success)
                         {
-                            checkCode(match.Groups, eip);
+                            checkCode(match.Groups, eip, false);
                         }
                         try
                         {
@@ -284,58 +284,54 @@ namespace MemoVisu_Form
             }
         }
 
-        private void checkCode(GroupCollection gc, uint eip)
+        private byte checkCode(GroupCollection gc, uint eip, Boolean rep)
         {
+            byte size = 0x0;
+
             if (gc["rep"].Value == "REP ")
             {
-                while (regs["ECX"] != 0)
+                if (regs["ECX"] != 0)
                 {
-                    if (gc["opecode"].Value == "LODS" || gc["opecode"].Value == "MUL" || gc["opecode"].Value == "DIV")
-                    // READ
-                    {
-                        if (gc["dst_size"].Value != "")
-                        {
-                            byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
-                            checkReadCode(gc["dst_addr"].Value, size);
-                        }
-                    }
-                    else if (gc["dst"].Value != "" && gc["dst_size"].Value != "")
-                    // WRITE
-                    {
-                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
-                        checkWriteCode(gc["dst_addr"].Value, size, eip);
-                    }
-                    if (gc["src"].Value != "" && gc["src_size"].Value != "")
-                    // READ
-                    {
-                        byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
-                        checkReadCode(gc["src_addr"].Value, size);
-                    }
-                    regs["ECX"] = regs["ECX"] - 1;
+                    checkCode(gc, eip, true);
                 }
-                return;
             }
             if (gc["opecode"].Value == "LODS" || gc["opecode"].Value == "MUL" || gc["opecode"].Value == "DIV")
                 // READ
             {
                 if(gc["dst_size"].Value != "")
                 {
-                    byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                    size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                     checkReadCode(gc["dst_addr"].Value, size);
+                    if (rep)
+                    {
+                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
+                        regs["ECX"] = regs["ECX"] - 1;
+                    }
                 }
             }
             else if (gc["dst"].Value != "" && gc["dst_size"].Value != "")
             // WRITE
             {
-                byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
+                size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                 checkWriteCode(gc["dst_addr"].Value, size, eip);
+                if (rep)
+                {
+                    regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
+                    regs["ECX"] = regs["ECX"] - 1;
+                }
             }
             if (gc["src"].Value != "" && gc["src_size"].Value != "")
                 // READ
             {
-                byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
+                size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
                 checkReadCode(gc["src_addr"].Value, size);
+                if (rep)
+                {
+                    regs[gc["src_addr"].Value] = regs[gc["src_addr"].Value] + size;
+                    regs["ECX"] = regs["ECX"] - 1;
+                }
             }
+            return size;
         }
 
         private void checkWriteCode(string pointer, byte size, uint eip)
