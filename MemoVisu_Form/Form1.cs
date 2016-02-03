@@ -46,8 +46,8 @@ namespace MemoVisu_Form
         List<Dictionary<uint, byte>> writeLayerList = new List<Dictionary<uint, byte>>() { new Dictionary<uint, byte>(), new Dictionary<uint, byte>() };
 
         int margin = 10;
-        int intervalX = 1;       //ブロック同士の横の間隔
-        int intervalY = 1;       //ブロック同士の縦の間隔
+        int intervalX = 0;       //ブロック同士の横の間隔
+        int intervalY = 0;       //ブロック同士の縦の間隔
         int width = 3;          //ブロックの幅
         int height = 3;         //ブロックの高さ
         int row = 0x100;        //1行あたりのブロック数
@@ -297,6 +297,7 @@ namespace MemoVisu_Form
                         {
                             byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                             checkReadCode(gc["dst_addr"].Value, size);
+                            regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
                         }
                     }
                     else if (gc["dst"].Value != "" && gc["dst_size"].Value != "")
@@ -304,12 +305,14 @@ namespace MemoVisu_Form
                     {
                         byte size = (byte)Enum.Parse(typeof(SIZE), gc["dst_size"].Value);
                         checkWriteCode(gc["dst_addr"].Value, size, eip);
+                        regs[gc["dst_addr"].Value] = regs[gc["dst_addr"].Value] + size;
                     }
                     if (gc["src"].Value != "" && gc["src_size"].Value != "")
                     // READ
                     {
                         byte size = (byte)Enum.Parse(typeof(SIZE), gc["src_size"].Value);
                         checkReadCode(gc["src_addr"].Value, size);
+                        regs[gc["src_addr"].Value] = regs[gc["src_addr"].Value] + size;
                     }
                     regs["ECX"] = regs["ECX"] - 1;
                 }
@@ -476,7 +479,13 @@ namespace MemoVisu_Form
         //「offset」テキストボックスの値変更時
         private void offset_textBox_TextChanged(object sender, EventArgs e)
         {
-            offset = Convert.ToUInt32(offset_textBox.Text, 16);
+            if (offset_textBox.Text == "")
+            {
+                offset = 0;
+            }
+            else {
+                offset = Convert.ToUInt32(offset_textBox.Text, 16);
+            }
         }
 
         private void mainPictureBox_MouseMove(object sender, MouseEventArgs e)
@@ -490,12 +499,24 @@ namespace MemoVisu_Form
 
         private void width_textBox_TextChanged(object sender, EventArgs e)
         {
-            width = int.Parse(width_textBox.Text);
+            if (width_textBox.Text == "")
+            {
+                width = 1;
+            }
+            else {
+                width = int.Parse(width_textBox.Text);
+            }
         }
 
         private void height_textBox_TextChanged(object sender, EventArgs e)
         {
-            height = int.Parse(height_textBox.Text);
+            if (height_textBox.Text == "")
+            {
+                height = 1;
+            }
+            else {
+                height = int.Parse(height_textBox.Text);
+            }
         }
     }
 }
