@@ -50,6 +50,7 @@
             this.readLayer_label = new System.Windows.Forms.Label();
             this.point_textBox = new System.Windows.Forms.TextBox();
             this.mouseOffset_label = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picture_map)).BeginInit();
@@ -58,7 +59,7 @@
             // 
             // width_textBox
             // 
-            this.width_textBox.Location = new System.Drawing.Point(257, 12);
+            this.width_textBox.Location = new System.Drawing.Point(238, 12);
             this.width_textBox.Name = "width_textBox";
             this.width_textBox.Size = new System.Drawing.Size(100, 19);
             this.width_textBox.TabIndex = 1;
@@ -67,7 +68,7 @@
             // width_label
             // 
             this.width_label.AutoSize = true;
-            this.width_label.Location = new System.Drawing.Point(219, 15);
+            this.width_label.Location = new System.Drawing.Point(200, 15);
             this.width_label.Name = "width_label";
             this.width_label.Size = new System.Drawing.Size(32, 12);
             this.width_label.TabIndex = 2;
@@ -75,7 +76,7 @@
             // 
             // height_textBox
             // 
-            this.height_textBox.Location = new System.Drawing.Point(257, 37);
+            this.height_textBox.Location = new System.Drawing.Point(238, 37);
             this.height_textBox.Name = "height_textBox";
             this.height_textBox.Size = new System.Drawing.Size(100, 19);
             this.height_textBox.TabIndex = 3;
@@ -84,7 +85,7 @@
             // height_label
             // 
             this.height_label.AutoSize = true;
-            this.height_label.Location = new System.Drawing.Point(215, 41);
+            this.height_label.Location = new System.Drawing.Point(196, 41);
             this.height_label.Name = "height_label";
             this.height_label.Size = new System.Drawing.Size(36, 12);
             this.height_label.TabIndex = 4;
@@ -94,7 +95,7 @@
             // 
             this.layer_listBox.FormattingEnabled = true;
             this.layer_listBox.ItemHeight = 12;
-            this.layer_listBox.Location = new System.Drawing.Point(503, 31);
+            this.layer_listBox.Location = new System.Drawing.Point(490, 31);
             this.layer_listBox.Name = "layer_listBox";
             this.layer_listBox.Size = new System.Drawing.Size(95, 100);
             this.layer_listBox.TabIndex = 5;
@@ -155,7 +156,7 @@
             // 
             // row_numericUpDown
             // 
-            this.row_numericUpDown.Location = new System.Drawing.Point(257, 87);
+            this.row_numericUpDown.Location = new System.Drawing.Point(238, 87);
             this.row_numericUpDown.Maximum = new decimal(new int[] {
             2048,
             0,
@@ -179,7 +180,7 @@
             // row_label
             // 
             this.row_label.AutoSize = true;
-            this.row_label.Location = new System.Drawing.Point(193, 90);
+            this.row_label.Location = new System.Drawing.Point(174, 90);
             this.row_label.Name = "row_label";
             this.row_label.Size = new System.Drawing.Size(58, 12);
             this.row_label.TabIndex = 13;
@@ -187,7 +188,7 @@
             // 
             // offset_textBox
             // 
-            this.offset_textBox.Location = new System.Drawing.Point(257, 62);
+            this.offset_textBox.Location = new System.Drawing.Point(238, 62);
             this.offset_textBox.Name = "offset_textBox";
             this.offset_textBox.Size = new System.Drawing.Size(100, 19);
             this.offset_textBox.TabIndex = 14;
@@ -196,7 +197,7 @@
             // paintOffset_label
             // 
             this.paintOffset_label.AutoSize = true;
-            this.paintOffset_label.Location = new System.Drawing.Point(156, 65);
+            this.paintOffset_label.Location = new System.Drawing.Point(137, 65);
             this.paintOffset_label.Name = "paintOffset_label";
             this.paintOffset_label.Size = new System.Drawing.Size(95, 12);
             this.paintOffset_label.TabIndex = 15;
@@ -205,7 +206,7 @@
             // writeSize_label
             // 
             this.writeSize_label.AutoSize = true;
-            this.writeSize_label.Location = new System.Drawing.Point(387, 94);
+            this.writeSize_label.Location = new System.Drawing.Point(739, 94);
             this.writeSize_label.Name = "writeSize_label";
             this.writeSize_label.Size = new System.Drawing.Size(73, 12);
             this.writeSize_label.TabIndex = 16;
@@ -214,7 +215,7 @@
             // readSize_label
             // 
             this.readSize_label.AutoSize = true;
-            this.readSize_label.Location = new System.Drawing.Point(385, 115);
+            this.readSize_label.Location = new System.Drawing.Point(737, 115);
             this.readSize_label.Name = "readSize_label";
             this.readSize_label.Size = new System.Drawing.Size(75, 12);
             this.readSize_label.TabIndex = 17;
@@ -228,7 +229,7 @@
             "書き込み",
             "読み込み",
             "実行"});
-            this.filter_checkedListBox.Location = new System.Drawing.Point(363, 12);
+            this.filter_checkedListBox.Location = new System.Drawing.Point(387, 31);
             this.filter_checkedListBox.Name = "filter_checkedListBox";
             this.filter_checkedListBox.Size = new System.Drawing.Size(97, 46);
             this.filter_checkedListBox.TabIndex = 18;
@@ -237,7 +238,7 @@
             // 
             this.readLayer_listBox.FormattingEnabled = true;
             this.readLayer_listBox.ItemHeight = 12;
-            this.readLayer_listBox.Location = new System.Drawing.Point(604, 31);
+            this.readLayer_listBox.Location = new System.Drawing.Point(591, 31);
             this.readLayer_listBox.Name = "readLayer_listBox";
             this.readLayer_listBox.Size = new System.Drawing.Size(95, 100);
             this.readLayer_listBox.TabIndex = 19;
@@ -245,7 +246,7 @@
             // writeLayer_label
             // 
             this.writeLayer_label.AutoSize = true;
-            this.writeLayer_label.Location = new System.Drawing.Point(501, 16);
+            this.writeLayer_label.Location = new System.Drawing.Point(488, 16);
             this.writeLayer_label.Name = "writeLayer_label";
             this.writeLayer_label.Size = new System.Drawing.Size(73, 12);
             this.writeLayer_label.TabIndex = 20;
@@ -254,7 +255,7 @@
             // readLayer_label
             // 
             this.readLayer_label.AutoSize = true;
-            this.readLayer_label.Location = new System.Drawing.Point(602, 16);
+            this.readLayer_label.Location = new System.Drawing.Point(589, 16);
             this.readLayer_label.Name = "readLayer_label";
             this.readLayer_label.Size = new System.Drawing.Size(75, 12);
             this.readLayer_label.TabIndex = 21;
@@ -262,7 +263,7 @@
             // 
             // point_textBox
             // 
-            this.point_textBox.Location = new System.Drawing.Point(257, 112);
+            this.point_textBox.Location = new System.Drawing.Point(238, 112);
             this.point_textBox.Name = "point_textBox";
             this.point_textBox.Size = new System.Drawing.Size(100, 19);
             this.point_textBox.TabIndex = 22;
@@ -270,17 +271,27 @@
             // mouseOffset_label
             // 
             this.mouseOffset_label.AutoSize = true;
-            this.mouseOffset_label.Location = new System.Drawing.Point(142, 115);
+            this.mouseOffset_label.Location = new System.Drawing.Point(123, 115);
             this.mouseOffset_label.Name = "mouseOffset_label";
             this.mouseOffset_label.Size = new System.Drawing.Size(109, 12);
             this.mouseOffset_label.TabIndex = 23;
             this.mouseOffset_label.Text = "カーソル直下オフセット";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(385, 16);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 12);
+            this.label1.TabIndex = 24;
+            this.label1.Text = "フィルタ";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(931, 703);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.mouseOffset_label);
             this.Controls.Add(this.point_textBox);
             this.Controls.Add(this.readLayer_label);
@@ -338,6 +349,7 @@
         private System.Windows.Forms.Label readLayer_label;
         private System.Windows.Forms.TextBox point_textBox;
         private System.Windows.Forms.Label mouseOffset_label;
+        private System.Windows.Forms.Label label1;
     }
 }
 
