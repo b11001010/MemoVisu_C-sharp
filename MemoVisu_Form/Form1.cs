@@ -231,7 +231,7 @@ namespace MemoVisu_Form
                             continue;
                         }
                         //正規表現でメモリアクセス命令を判別
-                        string pattern = @"(?<rep>REP )?(?<opecode>MOV|MOVS|STOS|LODS|XCHG|ADD|SUB|MUL|DIV|NOT|AND|OR|XOR|INC|DEC|SHR|ROL|NEG) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
+                        string pattern = @"(?<rep>REP )?(?<opecode>MOV|MOVS|STOS|LODS|XCHG|ADD|SUB|MUL|DIV|NOT|AND|OR|XOR|INC|DEC|SHR|SHL|SAR|SAL|ROR|ROL|RCR|RCL|NEG) (?:(?<dst>(?<dst_size>BYTE|DWORD|WORD) PTR ..:\[(?<dst_addr>.+?)\])|E?[A-DS][HILPX]|[0-9A-F]+),?(?:(?<src>(?<src_size>BYTE|DWORD|WORD) PTR ..:\[(?<src_addr>.+?)\])|E?[A-DS][[HILPX]|[0-9A-F]+)?";
                         Match match = Regex.Match(line, pattern);
                         if (match.Success)
                         {
