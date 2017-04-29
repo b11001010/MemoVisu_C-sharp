@@ -42,3 +42,7 @@ http://www.softpedia.com/get/Programming/Packers-Crypters-Protectors/RLPack-Basi
 http://www.softpedia.com/get/PORTABLE-SOFTWARE/Compression-Tools/Windows-Portable-Applications-Portable-WinUpack.shtml
 
 ![WinUpack](./WinUpack.png)
+
+### 使用トレースログ
+ - [HelloWorld.exe_log](https://drive.google.com/folderview?id=0BwbXG36B_WNMOFd5XzhDazc2Y1E&usp=sharing) - VisualStudioでビルドしたHelloWorld.exeのトレースログ
+ - [a.exe_log](https://drive.google.com/folderview?id=0BwbXG36B_WNMQjBQRzJxeFdxS2M&usp=sharing) - gccでビルドしたa.exeのトレースログ
